@@ -75,7 +75,7 @@ the second function and constructs a document from them.
 
 This is a quick summary of what is recognized by this
 experimental texopic processor at
-#url{github.com/cheery/texopic}. 
+#url{https://github.com/cheery/texopic}. 
 
 #pre
     #title
@@ -106,12 +106,12 @@ At least.. not yet.
 #section History
 
 Texopic started as
-#href {github.com/cheery/lever/blob/master/documentation_considerations.tex}
+#href {//github.com/cheery/lever/blob/master/documentation_considerations.tex}
 {consideration} of using TeX for documentation in
-#href{leverlanguage.com} {Lever}.
+#href{//leverlanguage.com} {Lever}.
 
 A small python script,
-#href{github.com/cheery/texopic/blob/master/texopic.py}{texopic.py},
+#href{//github.com/cheery/texopic/blob/master/texopic.py}{texopic.py},
 was the first instance of a readable typesetting format that
 could be used to documentation that matches to high standards.
 
