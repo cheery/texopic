@@ -1,8 +1,15 @@
 #title Texopic typesetting format
 
 Texopic is a side-effect of designing
-#url{leverlanguage.com}. It is easy to learn and easy to use
-typesetting format for civilized, and less civilized ages.
+#url{https://leverlanguage.com}. It is easy to learn and
+easy to use typesetting format for civilized, and less
+civilized ages.
+
+While highly inspired by TeX, Texopic is neither TeX nor a
+superset of TeX.
+
+Texopic name born as a wordplay from "TeX by Topic". Author
+thinks it sounds a bit like Aztec.
 
 Core principle in texopic is the use of one control
 character (#) to form macros. This makes it easy to avoid
@@ -110,6 +117,33 @@ Texopic started as
 {consideration} of using TeX for documentation in
 #href{//leverlanguage.com} {Lever}.
 
+For Lever I wanted that reference documentation would be
+written outside of the source files. The code would be
+annotated to refer on the reference, rather than the other
+way around.
+
+Lever documentation flows upwards from the source code. This
+means that aside reference, there is internal documentation
+that is sectioned by source files. That internal
+documentation is currently in text files, which felt very
+natural to write. I plan to section internal documentation
+into chapters that still are sectioned by source files. This
+internal documentation forms the basis for higher layers of
+documentation.
+
+I prefer that the references, guides and all the other
+material would be available on the website as well as in the
+runtime. To do this I need a format that a documentation
+system in runtime could layout directly, and that could be
+translated into highly linked, high quality HTML files.
+
+Many of the files designed for this purpose was unclear and
+it was hard to figure out what kind of notation they use.
+They appeared to be also difficult to customize.
+
+With texopic I can completely customize my documentation
+generation.
+
 A small python script,
 #href{//github.com/cheery/texopic/blob/master/texopic.py}{texopic.py},
 was the first instance of a readable typesetting format that
@@ -121,6 +155,3 @@ This file has been generated from #url{sample.text} with the
 following linux command: #pre
 
     python texopic.py sample.text > index.html
-
-Texopic name born as a wordplay from "TeX by Topic". Author
-thinks it sounds a bit like Aztec.

@@ -11,7 +11,9 @@ h2:hover > .ref { visibility: visible !important }
 </head>
 <body>
 <h1>Texopic typesetting format</h1>
-<p>Texopic is a side-effect of designing <a href="leverlanguage.com">leverlanguage.com</a>. It is easy to learn and easy to use typesetting format for civilized, and less civilized ages.</p>
+<p>Texopic is a side-effect of designing <a href="https://leverlanguage.com">https://leverlanguage.com</a>. It is easy to learn and easy to use typesetting format for civilized, and less civilized ages.</p>
+<p>While highly inspired by TeX, Texopic is neither TeX nor a superset of TeX.</p>
+<p>Texopic name born as a wordplay from "TeX by Topic". Author thinks it sounds a bit like Aztec.</p>
 <p>Core principle in texopic is the use of one control character (#) to form macros. This makes it easy to avoid triggering a document processor when writing a plaintext.</p>
 <p>To make it even harder to trigger a macro on accident, the macro word must be separated from plaintext by either semicolons or space. The surrounding semicolon characters around a macro word are consumed.</p>
 <p>It should be extremely unlikely occurrence that texopic processor recognizes a macro from an URL you paste into your document.</p>
@@ -46,10 +48,14 @@ h2:hover > .ref { visibility: visible !important }
 <p>At least.. not yet.</p>
 <h2 id="7">7. History <a class="ref" href="#7">$</a></h2>
 <p>Texopic started as <a href="//github.com/cheery/lever/blob/master/documentation_considerations.tex">consideration</a> of using TeX for documentation in <a href="//leverlanguage.com">Lever</a>.</p>
+<p>For Lever I wanted that reference documentation would be written outside of the source files. The code would be annotated to refer on the reference, rather than the other way around.</p>
+<p>Lever documentation flows upwards from the source code. This means that aside reference, there is internal documentation that is sectioned by source files. That internal documentation is currently in text files, which felt very natural to write. I plan to section internal documentation into chapters that still are sectioned by source files. This internal documentation forms the basis for higher layers of documentation.</p>
+<p>I prefer that the references, guides and all the other material would be available on the website as well as in the runtime. To do this I need a format that a documentation system in runtime could layout directly, and that could be translated into highly linked, high quality HTML files.</p>
+<p>Many of the files designed for this purpose was unclear and it was hard to figure out what kind of notation they use. They appeared to be also difficult to customize.</p>
+<p>With texopic I can completely customize my documentation generation.</p>
 <p>A small python script, <a href="//github.com/cheery/texopic/blob/master/texopic.py">texopic.py</a>, was the first instance of a readable typesetting format that could be used to documentation that matches to high standards.</p>
 <h2 id="8">8. Trivia <a class="ref" href="#8">$</a></h2>
 <p>This file has been generated from <a href="sample.text">sample.text</a> with the following linux command:</p>
 <pre>python texopic.py sample.text > index.html</pre>
-<p>Texopic name born as a wordplay from "TeX by Topic". Author thinks it sounds a bit like Aztec.</p>
 </body>
 </html>
