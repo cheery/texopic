@@ -120,7 +120,7 @@ could be used to documentation that matches to high standards.
 This file has been generated from #url{sample.text} with the
 following linux command: #pre
 
-    python texopic.py sample.text > sample.html
+    python texopic.py sample.text > index.html
 
 Texopic name born as a wordplay from "TeX by Topic". Author
 thinks it sounds a bit like Aztec.
