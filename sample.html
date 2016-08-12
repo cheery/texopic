@@ -1,0 +1,55 @@
+<html>
+<head>
+<meta charset="utf-8">
+<title>Texopic typesetting format</title>
+<style>
+body { max-width: 75ex }
+pre { border: 1px solid #cfcfcf; padding: 1em 4ex }
+h2        > .ref { visibility: hidden; text-decoration: none; }
+h2:hover > .ref { visibility: visible !important }
+</style>
+</head>
+<body>
+<h1>Texopic typesetting format</h1>
+<p>Texopic is a side-effect of designing <a href="leverlanguage.com">leverlanguage.com</a>. It is easy to learn and easy to use typesetting format for civilized, and less civilized ages.</p>
+<p>Core principle in texopic is the use of one control character (#) to form macros. This makes it easy to avoid triggering a document processor when writing a plaintext.</p>
+<p>To make it even harder to trigger a macro on accident, the macro word must be separated from plaintext by either semicolons or space. The surrounding semicolon characters around a macro word are consumed.</p>
+<p>It should be extremely unlikely occurrence that texopic processor recognizes a macro from an URL you paste into your document.</p>
+<h2 id="1">1. Character escapes <a class="ref" href="#1">$</a></h2>
+<p>Texopic processors are expected to accept UTF-8 text. But they can also recognize two forms of character escapes: #XX and #U+XXXX. You can use both of these formats to represent unicode characters that mess up in the editor.</p>
+<h2 id="2">2. Macro block #pre <a class="ref" href="#2">$</a></h2>
+<p>Sometimes it is desirable to not let texopic format your text. For example when writing short code snippets, or something that should go through a specialized processor that doesn't obey texopic rules.</p>
+<p>For this purpose there is a #pre macro. When #pre appears on the end of a line, it will consume the subsequent lines that are indented higher than the line where the #pre macro appeared.</p>
+<pre>#code python #pre
+    print("hello world")</pre>
+<p>This feature may make texopic pain-in-the-ass to syntax color. But then it enables you to write a real, backwards compatible WYSIWYG text processor around this format.</p>
+<h2 id="3">3. Macro resolution <a class="ref" href="#3">$</a></h2>
+<p>To understand how texopic works through the document. It is accurate to think of it as a chain of functions.</p>
+<p>The first function transforms plaintext input into sequence of characters and macro words. Lines consumed by #pre are annotated into that token.</p>
+<p>The second function feeds the plaintext through a machine that consists of states. Every character and macro word are interpreted in context. Some macro words initiate a new state where they collect sequence of arguments to themselves. Others mutate the current state.</p>
+<p>The left brace and right brace are recognized as plain text when there is no macros expecting arguments. In presence of macros expecting arguments they are treated as grouping elements. Simple names non containing spaces can be passed as argument without braces surrounding them.</p>
+<p>Macros can be defined and plugged into the second function to create completely customized document processors.</p>
+<p>Third function takes the information and lists constructed by the second function and constructs a document from them.</p>
+<h2 id="4">4. Recognized macros <a class="ref" href="#4">$</a></h2>
+<p>This is a quick summary of what is recognized by this experimental texopic processor at <a href="github.com/cheery/texopic">github.com/cheery/texopic</a>.</p>
+<pre>#title
+#pre
+#url{domain}
+#href{domain}{description}
+#section
+#subsection</pre>
+<p>The macros try to follow conventions present in LaTeX.</p>
+<h2 id="5">5. URL handling <a class="ref" href="#5">$</a></h2>
+<p>URLs in texopic should be prefixed with #url macro word. The automatic recognition of URLs is extremely hard problem to solve in such way that it covers any and every valid URL you could pass into the text.</p>
+<h2 id="6">6. Notes <a class="ref" href="#6">$</a></h2>
+<p>There's a python script to generate html files in the repository, but otherwise this is a description of a format. There is no substantial tools in this repository to implement your own texopic document processors.</p>
+<p>At least.. not yet.</p>
+<h2 id="7">7. History <a class="ref" href="#7">$</a></h2>
+<p>Texopic started as <a href="github.com/cheery/lever/blob/master/documentation_considerations.tex">consideration</a> of using TeX for documentation in <a href="leverlanguage.com">Lever</a>.</p>
+<p>A small python script, <a href="github.com/cheery/texopic/blob/master/texopic.py">texopic.py</a>, was the first instance of a readable typesetting format that could be used to documentation that matches to high standards.</p>
+<h2 id="8">8. Trivia <a class="ref" href="#8">$</a></h2>
+<p>This file has been generated from <a href="sample.text">sample.text</a> with the following linux command:</p>
+<pre>python texopic.py sample.text > sample.html</pre>
+<p>Texopic name born as a wordplay from "TeX by Topic". Author thinks it sounds a bit like Aztec.</p>
+</body>
+</html>

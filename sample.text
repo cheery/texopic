@@ -1,0 +1,126 @@
+#title Texopic typesetting format
+
+Texopic is a side-effect of designing
+#url{leverlanguage.com}. It is easy to learn and easy to use
+typesetting format for civilized, and less civilized ages.
+
+Core principle in texopic is the use of one control
+character (#) to form macros. This makes it easy to avoid
+triggering a document processor when writing a plaintext.
+
+To make it even harder to trigger a macro on accident, the
+macro word must be separated from plaintext by either
+semicolons or space. The surrounding semicolon characters
+around a macro word are consumed.
+
+It should be extremely unlikely occurrence that texopic
+processor recognizes a macro from an URL you paste into your
+document.
+
+#section Character escapes
+
+Texopic processors are expected to accept UTF-8 text. But
+they can also recognize two forms of character escapes:
+#;XX and #;U+XXXX. You can use both of these formats to
+represent unicode characters that mess up in the editor.
+
+#section Macro block #;pre
+
+Sometimes it is desirable to not let texopic format your
+text. For example when writing short code snippets, or
+something that should go through a specialized processor
+that doesn't obey texopic rules.
+
+For this purpose there is a #;pre macro. When #;pre appears
+on the end of a line, it will consume the subsequent lines
+that are indented higher than the line where the #;pre macro
+appeared.
+
+#pre
+    #code python #pre
+        print("hello world")
+        
+This feature may make texopic pain-in-the-ass to syntax
+color. But then it enables you to write a real, backwards
+compatible WYSIWYG text processor around this format.
+
+#section Macro resolution
+
+To understand how texopic works through the document. It is
+accurate to think of it as a chain of functions.
+
+The first function transforms plaintext input into sequence
+of characters and macro words. Lines consumed by #;pre are
+annotated into that token.
+
+The second function feeds the plaintext through a machine
+that consists of states. Every character and macro word are
+interpreted in context. Some macro words initiate a new
+state where they collect sequence of arguments to
+themselves. Others mutate the current state.
+
+The left brace and right brace are recognized as plain text
+when there is no macros expecting arguments. In presence of
+macros expecting arguments they are treated as grouping
+elements. Simple names non containing spaces can be passed
+as argument without braces surrounding them.
+
+Macros can be defined and plugged into the second function
+to create completely customized document processors.
+
+Third function takes the information and lists constructed by
+the second function and constructs a document from them.
+
+#section Recognized macros
+
+This is a quick summary of what is recognized by this
+experimental texopic processor at
+#url{github.com/cheery/texopic}. 
+
+#pre
+    #title
+    #pre
+    #url{domain}
+    #href{domain}{description}
+    #section
+    #subsection
+
+The macros try to follow conventions present in LaTeX.
+
+#section URL handling
+
+URLs in texopic should be prefixed with #;url macro word.
+The automatic recognition of URLs is extremely hard problem
+to solve in such way that it covers any and every valid URL
+you could pass into the text.
+
+#section Notes
+
+There's a python script to generate html files in the
+repository, but otherwise this is a description of a format.
+There is no substantial tools in this repository to
+implement your own texopic document processors.
+
+At least.. not yet.
+
+#section History
+
+Texopic started as
+#href {github.com/cheery/lever/blob/master/documentation_considerations.tex}
+{consideration} of using TeX for documentation in
+#href{leverlanguage.com} {Lever}.
+
+A small python script,
+#href{github.com/cheery/texopic/blob/master/texopic.py}{texopic.py},
+was the first instance of a readable typesetting format that
+could be used to documentation that matches to high standards.
+
+#section Trivia
+
+This file has been generated from #url{sample.text} with the
+following linux command: #pre
+
+    python texopic.py sample.text > sample.html
+
+Texopic name born as a wordplay from "TeX by Topic". Author
+thinks it sounds a bit like Aztec.
