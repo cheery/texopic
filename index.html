@@ -10,52 +10,215 @@ h2:hover > .ref { visibility: visible !important }
 </style>
 </head>
 <body>
-<h1>Texopic typesetting format</h1>
-<p>Texopic is a side-effect of designing <a href="https://leverlanguage.com">https://leverlanguage.com</a>. It is easy to learn and easy to use typesetting format for civilized, and less civilized ages.</p>
-<p>While highly inspired by TeX, Texopic is neither TeX nor a superset of TeX.</p>
-<p>Texopic name born as a wordplay from "TeX by Topic". Author thinks it sounds a bit like Aztec.</p>
-<p>Core principle in texopic is the use of one control character (#) to form macros. This makes it easy to avoid triggering a document processor when writing a plaintext.</p>
-<p>To make it even harder to trigger a macro on accident, the macro word must be separated from plaintext by either semicolons or space. The surrounding semicolon characters around a macro word are consumed.</p>
-<p>It should be extremely unlikely occurrence that texopic processor recognizes a macro from an URL you paste into your document.</p>
-<h2 id="1">1. Character escapes <a class="ref" href="#1">$</a></h2>
-<p>Texopic processors are expected to accept UTF-8 text. But they can also recognize two forms of character escapes: #XX and #U+XXXX. You can use both of these formats to represent unicode characters that mess up in the editor.</p>
-<h2 id="2">2. Macro block #pre <a class="ref" href="#2">$</a></h2>
-<p>Sometimes it is desirable to not let texopic format your text. For example when writing short code snippets, or something that should go through a specialized processor that doesn't obey texopic rules.</p>
-<p>For this purpose there is a #pre macro. When #pre appears on the end of a line, it will consume the subsequent lines that are indented higher than the line where the #pre macro appeared.</p>
-<pre>#code python #pre
+<h1>
+Texopic typesetting format
+</h1><p>
+Texopic is a side-effect of designing
+<a href="https://leverlanguage.com">https://leverlanguage.com</a>. It is easy to learn and
+easy to use typesetting format for civilized, and less
+civilized ages.
+</p><p>
+While highly inspired by TeX, Texopic is neither TeX nor a
+superset of TeX.
+</p><p>
+Texopic name born as a wordplay from "TeX by Topic". Author
+thinks it sounds a bit like Aztec.
+</p><p>
+Core principle in texopic is the use of one control
+character (#) to form macros. This makes it easy to avoid
+triggering a document processor when writing a plaintext.
+</p><p>
+To make it even harder to trigger a macro on accident, the
+macro word must be separated from plaintext by either
+semicolons or space. The surrounding semicolon characters
+around a macro word are consumed.
+</p><p>
+It should be extremely unlikely occurrence that texopic
+processor recognizes a macro from an URL you paste into your
+document.
+</p><p>
+Whenever a macro is recognised, every texopic processor
+recognizes the exact same macros and structure.
+</p><h2 id="1">
+1.  Character escapes
+ <a class="ref" href="#1">$</a>
+</h2><p>
+Texopic processors are expected to accept UTF-8 text. But
+they can also recognize two forms of character escapes:
+#XX and #U+XXXX. You can use both of these formats to
+represent unicode characters that mess up in the editor.
+</p><h2 id="2">
+2.  Macro block ##
+ <a class="ref" href="#2">$</a>
+</h2><p>
+Sometimes it is desirable to not let texopic format your
+text. For example when writing short code snippets, or
+something that should go through a specialized processor
+that doesn't obey texopic rules.
+</p><p>
+For this purpose there is a ## macro. When ## appears
+on the end of a line, it will consume the subsequent lines
+that are indented higher than the line where the ## macro
+appeared.
+</p><p>
+<pre>#code python ##
     print("hello world")</pre>
-<p>This feature may make texopic pain-in-the-ass to syntax color. But then it enables you to write a real, backwards compatible WYSIWYG text processor around this format.</p>
-<h2 id="3">3. Macro resolution <a class="ref" href="#3">$</a></h2>
-<p>To understand how texopic works through the document. It is accurate to think of it as a chain of functions.</p>
-<p>The first function transforms plaintext input into sequence of characters and macro words. Lines consumed by #pre are annotated into that token.</p>
-<p>The second function feeds the plaintext through a machine that consists of states. Every character and macro word are interpreted in context. Some macro words initiate a new state where they collect sequence of arguments to themselves. Others mutate the current state.</p>
-<p>The left brace and right brace are recognized as plain text when there is no macros expecting arguments. In presence of macros expecting arguments they are treated as grouping elements. Simple names non containing spaces can be passed as argument without braces surrounding them.</p>
-<p>Macros can be defined and plugged into the second function to create completely customized document processors.</p>
-<p>Third function takes the information and lists constructed by the second function and constructs a document from them.</p>
-<h2 id="4">4. Recognized macros <a class="ref" href="#4">$</a></h2>
-<p>This is a quick summary of what is recognized by this experimental texopic processor at <a href="https://github.com/cheery/texopic">https://github.com/cheery/texopic</a>.</p>
+</p><p>
+This feature may make texopic pain-in-the-ass to syntax
+color. But then it enables you to write a real, backwards
+compatible WYSIWYG text processor around this format.
+</p><p>
+The semicolon after a ## macro prevents it from having an
+effect at the end of a line.
+</p><h2 id="3">
+3.  Segment breaking
+ <a class="ref" href="#3">$</a>
+</h2><p>
+Blank lines in texopic text breaks the text into segments.
+Also, the ## macro always ends a segment.
+</p><p>
+Macros can be used to label a segment to give them a special
+meaning. #title, #section and #subsection have precisely
+that behavior.
+</p><h2 id="4">
+4.  Macro grouping
+ <a class="ref" href="#4">$</a>
+</h2><p>
+The { and } characters are used to group in texopic. They
+prevent newlines from breaking the segment.
+</p><p>
+} and { characters can be used in the stream without worries
+as long as they pair properly inside the macro groups. They
+only have meaning when they come after a macro.
+</p><p>
+Whenever a macro is followed by one or more groups, those
+groups are fused into the macro as arguments.
+</p><p>
+Blank lines or characters between a macro and a group
+prevent the macro from collecting the group.
+</p><p>
+Here are several examples of groups that do not fuse with a
+macro:
+</p><p>
+<pre>#href;{does not fuse}
+
+#url
+
+{does not fuse}</pre>
+</p><p>
+These groups fuse with macros preceding them:
+</p><p>
+<pre>#href{//example.org}{example}
+
+#href {//example.org} {example}
+
+#href
+{//example.org}
+{example}</pre>
+</p><h2 id="5">
+5.  Macro resolution
+ <a class="ref" href="#5">$</a>
+</h2><p>
+To understand how texopic works through the document. It is
+accurate to think of it as a chain of functions.
+</p><p>
+The first function transforms plaintext input into sequence
+of characters and macro words. Lines consumed by ## token
+are annotated into that token. The newlines followed by
+blanks and macros followed by ';' are marked.
+</p><p>
+The second function forms segments from a sequence produced
+by the first function. The groups and macros are formed and
+no further parsing is needed after that point.
+</p><p>
+At this point the control is on the user. She can choose
+which kind of output he wants. She can completely customize
+how the macros are interpreted by adjusting the output
+processors.
+</p><h2 id="6">
+6.  Recognized macros
+ <a class="ref" href="#6">$</a>
+</h2><p>
+This is a quick summary of what is recognized by the
+experimental texopic html processor at
+<a href="https://github.com/cheery/texopic">https://github.com/cheery/texopic</a>.
+</p><p>
 <pre>#title
-#pre
+##
 #url{domain}
 #href{domain}{description}
 #section
 #subsection</pre>
-<p>The macros try to follow conventions present in LaTeX.</p>
-<h2 id="5">5. URL handling <a class="ref" href="#5">$</a></h2>
-<p>URLs in texopic should be prefixed with #url macro word. The automatic recognition of URLs is extremely hard problem to solve in such way that it covers any and every valid URL you could pass into the text.</p>
-<h2 id="6">6. Notes <a class="ref" href="#6">$</a></h2>
-<p>There's a python script to generate html files in the repository, but otherwise this is a description of a format. There is no substantial tools in this repository to implement your own texopic document processors.</p>
-<p>At least.. not yet.</p>
-<h2 id="7">7. History <a class="ref" href="#7">$</a></h2>
-<p>Texopic started as <a href="//github.com/cheery/lever/blob/master/documentation_considerations.tex">consideration</a> of using TeX for documentation in <a href="//leverlanguage.com">Lever</a>.</p>
-<p>For Lever I wanted that reference documentation would be written outside of the source files. The code would be annotated to refer on the reference, rather than the other way around.</p>
-<p>Lever documentation flows upwards from the source code. This means that aside reference, there is internal documentation that is sectioned by source files. That internal documentation is currently in text files, which felt very natural to write. I plan to section internal documentation into chapters that still are sectioned by source files. This internal documentation forms the basis for higher layers of documentation.</p>
-<p>I prefer that the references, guides and all the other material would be available on the website as well as in the runtime. To do this I need a format that a documentation system in runtime could layout directly, and that could be translated into highly linked, high quality HTML files.</p>
-<p>Many of the files designed for this purpose was unclear and it was hard to figure out what kind of notation they use. They appeared to be also difficult to customize.</p>
-<p>With texopic I can completely customize my documentation generation.</p>
-<p>A small python script, <a href="//github.com/cheery/texopic/blob/master/texopic.py">texopic.py</a>, was the first instance of a readable typesetting format that could be used to documentation that matches to high standards.</p>
-<h2 id="8">8. Trivia <a class="ref" href="#8">$</a></h2>
-<p>This file has been generated from <a href="sample.text">sample.text</a> with the following linux command:</p>
-<pre>python texopic.py sample.text > index.html</pre>
+</p><p>
+The macros try to follow conventions present in LaTeX.
+</p><h2 id="7">
+7.  URL handling
+ <a class="ref" href="#7">$</a>
+</h2><p>
+URLs in texopic should be prefixed with #url macro word.
+The automatic recognition of URLs is extremely hard problem
+to solve in such way that it covers any and every valid URL
+you could pass into the text.
+</p><h2 id="8">
+8.  Notes
+ <a class="ref" href="#8">$</a>
+</h2><p>
+Overall, this is a description of a format. This document
+should describe the texopic format in whole.
+</p><p>
+The document is accompanied by scripts to generate html in
+the repository. You can use them to create your own texopic
+document processors. Those scripts do not define the format
+though.
+</p><h2 id="9">
+9.  History
+ <a class="ref" href="#9">$</a>
+</h2><p>
+Texopic started as
+<a href="//github.com/cheery/lever/blob/master/documentation_considerations.tex">consideration</a> of using TeX for documentation in
+<a href="//leverlanguage.com">Lever</a>.
+</p><p>
+For Lever I wanted that reference documentation would be
+written outside of the source files. The code would be
+annotated to refer on the reference, rather than the other
+way around.
+</p><p>
+Lever documentation flows upwards from the source code. This
+means that aside reference, there is internal documentation
+that is sectioned by source files. That internal
+documentation is currently in text files, which felt very
+natural to write. I plan to section internal documentation
+into chapters that still are sectioned by source files. This
+internal documentation forms the basis for higher layers of
+documentation.
+</p><p>
+I prefer that the references, guides and all the other
+material would be available on the website as well as in the
+runtime. To do this I need a format that a documentation
+system in runtime could layout directly, and that could be
+translated into highly linked, high quality HTML files.
+</p><p>
+Many of the files designed for this purpose was unclear and
+it was hard to figure out what kind of notation they use.
+They appeared to be also difficult to customize.
+</p><p>
+With texopic I can completely customize my documentation
+generation.
+</p><p>
+A small python script,
+<a href="//github.com/cheery/texopic/blob/master/texopic.py">texopic.py</a>,
+was the first instance of a readable typesetting format that
+could be used to documentation that matches to high standards.
+</p><h2 id="10">
+10.  Trivia
+ <a class="ref" href="#10">$</a>
+</h2><p>
+This file has been generated from <a href="sample.text">sample.text</a> with the
+following linux command:
+</p><p>
+<pre>python texopic2html.py sample.text > index.html</pre>
+</p><p>
+
+</p>
 </body>
 </html>

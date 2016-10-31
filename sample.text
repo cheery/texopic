@@ -24,6 +24,9 @@ It should be extremely unlikely occurrence that texopic
 processor recognizes a macro from an URL you paste into your
 document.
 
+Whenever a macro is recognised, every texopic processor
+recognizes the exact same macros and structure.
+
 #section Character escapes
 
 Texopic processors are expected to accept UTF-8 text. But
@@ -31,25 +34,73 @@ they can also recognize two forms of character escapes:
 #;XX and #;U+XXXX. You can use both of these formats to
 represent unicode characters that mess up in the editor.
 
-#section Macro block #;pre
+#section Macro block ##;
 
 Sometimes it is desirable to not let texopic format your
 text. For example when writing short code snippets, or
 something that should go through a specialized processor
 that doesn't obey texopic rules.
 
-For this purpose there is a #;pre macro. When #;pre appears
+For this purpose there is a ##; macro. When ##; appears
 on the end of a line, it will consume the subsequent lines
-that are indented higher than the line where the #;pre macro
+that are indented higher than the line where the ##; macro
 appeared.
 
-#pre
-    #code python #pre
+##
+    #code python ##
         print("hello world")
         
 This feature may make texopic pain-in-the-ass to syntax
 color. But then it enables you to write a real, backwards
 compatible WYSIWYG text processor around this format.
+
+The semicolon after a ##; macro prevents it from having an
+effect at the end of a line.
+
+#section Segment breaking
+
+Blank lines in texopic text breaks the text into segments.
+Also, the ##; macro always ends a segment.
+
+Macros can be used to label a segment to give them a special
+meaning. #;title, #;section and #;subsection have precisely
+that behavior.
+
+#section Macro grouping
+
+The { and } characters are used to group in texopic. They
+prevent newlines from breaking the segment. 
+
+} and { characters can be used in the stream without worries
+as long as they pair properly inside the macro groups. They
+only have meaning when they come after a macro.
+
+Whenever a macro is followed by one or more groups, those
+groups are fused into the macro as arguments.
+
+Blank lines or characters between a macro and a group
+prevent the macro from collecting the group.
+
+Here are several examples of groups that do not fuse with a
+macro:
+
+##
+    #href;{does not fuse}
+
+    #url
+
+    {does not fuse}
+
+These groups fuse with macros preceding them:
+
+##
+    #href{//example.org}{example}
+
+    #href {//example.org} {example}
+
+    #href
+    {//example.org}
+    {example}
 
 #section Macro resolution
 
@@ -57,36 +108,28 @@ To understand how texopic works through the document. It is
 accurate to think of it as a chain of functions.
 
 The first function transforms plaintext input into sequence
-of characters and macro words. Lines consumed by #;pre are
-annotated into that token.
+of characters and macro words. Lines consumed by #;#; token
+are annotated into that token. The newlines followed by
+blanks and macros followed by ';' are marked.
 
-The second function feeds the plaintext through a machine
-that consists of states. Every character and macro word are
-interpreted in context. Some macro words initiate a new
-state where they collect sequence of arguments to
-themselves. Others mutate the current state.
+The second function forms segments from a sequence produced
+by the first function. The groups and macros are formed and
+no further parsing is needed after that point.
 
-The left brace and right brace are recognized as plain text
-when there is no macros expecting arguments. In presence of
-macros expecting arguments they are treated as grouping
-elements. Simple names non containing spaces can be passed
-as argument without braces surrounding them.
-
-Macros can be defined and plugged into the second function
-to create completely customized document processors.
-
-Third function takes the information and lists constructed by
-the second function and constructs a document from them.
+At this point the control is on the user. She can choose
+which kind of output he wants. She can completely customize
+how the macros are interpreted by adjusting the output
+processors.
 
 #section Recognized macros
 
-This is a quick summary of what is recognized by this
-experimental texopic processor at
+This is a quick summary of what is recognized by the
+experimental texopic html processor at
 #url{https://github.com/cheery/texopic}. 
 
-#pre
+##
     #title
-    #pre
+    ##
     #url{domain}
     #href{domain}{description}
     #section
@@ -103,12 +146,13 @@ you could pass into the text.
 
 #section Notes
 
-There's a python script to generate html files in the
-repository, but otherwise this is a description of a format.
-There is no substantial tools in this repository to
-implement your own texopic document processors.
+Overall, this is a description of a format. This document
+should describe the texopic format in whole.
 
-At least.. not yet.
+The document is accompanied by scripts to generate html in
+the repository. You can use them to create your own texopic
+document processors. Those scripts do not define the format
+though.
 
 #section History
 
@@ -152,6 +196,7 @@ could be used to documentation that matches to high standards.
 #section Trivia
 
 This file has been generated from #url{sample.text} with the
-following linux command: #pre
+following linux command:
 
-    python texopic.py sample.text > index.html
+##
+    python texopic2html.py sample.text > index.html
