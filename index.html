@@ -1,50 +1,62 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Texopic typesetting format</title>
+<title>Texopic typesetting language</title>
 <style>
 body { max-width: 75ex }
 pre { border: 1px solid #cfcfcf; padding: 1em 4ex }
-h2       > .ref { visibility: hidden; text-decoration: none; }
+h2       > .ref { visibility: hidden; text-decoration: underline; }
 h2:hover > .ref { visibility: visible !important }
-h3       > .ref { visibility: hidden; text-decoration: none; }
+h3       > .ref { visibility: hidden; text-decoration: underline; }
 h3:hover > .ref { visibility: visible !important }
 </style>
 </head>
 <body>
 <h1>
-Texopic typesetting format
+Texopic typesetting language
 </h1><p>
-Texopic is a side-effect of designing
-<a href="https://leverlanguage.com">https://leverlanguage.com</a>. It is easy to learn and
-easy to use typesetting format for civilized, and less
-civilized ages.
+Texopic is a typesetting language for civilized, and less
+civilized ages. It is easy to learn and easy to use.
+</p><pre>#title Your story here
+
+Opening paragraph.
+
+#href {https://example.org/}
+{Example link}</pre><p>
+The core principle in Texopic is to stay on the back when
+the author concentrates on writing her content.
 </p><p>
-While highly inspired by TeX, Texopic is neither TeX nor a
-superset of TeX.
+Texopic uses only one meta-character (#) to form macros.
+This makes it likely to avoid triggering a document
+processor when writing your plaintext.
 </p><p>
-Texopic name born as a wordplay from "TeX by Topic". Author
-thinks it sounds a bit like Aztec.
+To make it even harder to trigger a macro by accident, the
+macro character and word must be separated from the
+plaintext by either semicolons or space. The surrounding
+semicolon characters around a macro word are consumed.
+</p><pre>Hello#world</pre><p>
+Would print out as 'Hello#world', whereas.
+</p><pre>Hello;#world</pre><p>
+Would trigger a macro #world right after the 'Hello'.
+If you actually wanted to type 'Hello #world' instead, you
+could add semicolon after the meta-character to prevent it
+from forming a macro.
+</p><pre>Hello #;world</pre><p>
+It should be extremely unlikely occurrence that a Texopic
+processor recognizes a macro from something you write or
+paste into your document.
 </p><p>
-Core principle in texopic is the use of one control
-character (#) to form macros. This makes it easy to avoid
-triggering a document processor when writing a plaintext.
+Every Texopic processor recognize the same macros and the
+same structure. Users can define new macro words to extend
+what they can do with the language.
 </p><p>
-To make it even harder to trigger a macro on accident, the
-macro word must be separated from plaintext by either
-semicolons or space. The surrounding semicolon characters
-around a macro word are consumed.
-</p><p>
-It should be extremely unlikely occurrence that texopic
-processor recognizes a macro from an URL you paste into your
-document.
-</p><p>
-Whenever a macro is recognised, every texopic processor
-recognizes the exact same macros and structure.
+Texopic processor can be extended by writing new, custom
+processors with a scripting language such as 
+<a href="https://python.org/">Python</a>.
 </p><h2 id="1">
 1. Specification <a class="ref" href="#1">$</a>
 </h2><p>
-Overall, this document here should describe the texopic
+Overall, this document here should describe the Texopic
 format in whole.
 </p><p>
 If the tool doesn't behave according to this document, the
@@ -58,7 +70,7 @@ tool contains a bug.
 2.1. Notes for utility library <a class="ref" href="#2.1">$</a>
 </h3><p>
 The library contains a module and scripts to generate html
-from texopic format. That generator has been written in such
+from Texopic format. That generator has been written in such
 way that lets you build your own document processor from the
 pieces.
 </p><p>
@@ -77,10 +89,10 @@ represent unicode characters that mess up in the editor.
 </p><h2 id="4">
 4. Macro block ## <a class="ref" href="#4">$</a>
 </h2><p>
-Sometimes it is desirable to not let texopic format your
+Sometimes it is desirable to not let Texopic format your
 text. For example when writing short code snippets, or
 something that should go through a specialized processor
-that doesn't obey texopic rules.
+that doesn't obey Texopic rules.
 </p><p>
 For this purpose there is a ## macro. When ## appears
 on the end of a line, it will consume the subsequent lines
@@ -88,7 +100,7 @@ that are indented higher than the line where the ## macro
 appeared.
 </p><pre>#code python ##
     print("hello world")</pre><p>
-This feature may make texopic pain-in-the-ass to syntax
+This feature may make Texopic pain-in-the-ass to syntax
 color. But then it enables you to write a real, backwards
 compatible WYSIWYG text processor around this format.
 </p><p>
@@ -97,7 +109,7 @@ effect at the end of a line.
 </p><h2 id="5">
 5. Segment breaking <a class="ref" href="#5">$</a>
 </h2><p>
-Blank lines in texopic text breaks the text into segments.
+Blank lines in Texopic text breaks the text into segments.
 Also, the ## macro always ends a segment.
 </p><p>
 Macros can be used to label a segment to give them a special
@@ -106,7 +118,7 @@ that behavior.
 </p><h2 id="6">
 6. Macro grouping <a class="ref" href="#6">$</a>
 </h2><p>
-The { and } characters are used to group in texopic. They
+The { and } characters are used to group in Texopic. They
 prevent newlines from breaking the segment.
 </p><p>
 } and { characters can be used in the stream without worries
@@ -136,7 +148,7 @@ These groups fuse with macros preceding them:
 {example}</pre><h2 id="7">
 7. Macro resolution <a class="ref" href="#7">$</a>
 </h2><p>
-To understand how texopic works through the document. It is
+To understand how Texopic works through the document. It is
 accurate to think of it as a chain of functions.
 </p><p>
 The first function transforms plaintext input into sequence
@@ -148,15 +160,15 @@ The second function forms segments from a sequence produced
 by the first function. The groups and macros are formed and
 no further parsing is needed after that point.
 </p><p>
-At this point the control is on the user. She can choose
-which kind of output he wants. She can completely customize
+At this point the control is up to the user. She can choose
+which kind of output she wants. She can completely customize
 how the macros are interpreted by adjusting the output
 processors.
 </p><h2 id="8">
 8. Recognized macros <a class="ref" href="#8">$</a>
 </h2><p>
 This is a quick summary of what is recognized by the
-<a href="https://github.com/cheery/texopic">texopic html processor</a>.
+<a href="https://github.com/cheery/texopic">Texopic html processor</a>.
 </p><pre>#title
 ##
 #url{domain}
@@ -167,24 +179,24 @@ The macros try to follow conventions present in LaTeX.
 </p><h2 id="9">
 9. URL handling <a class="ref" href="#9">$</a>
 </h2><p>
-URLs in texopic should be prefixed with #url macro word.
-The automatic recognition of URLs is extremely hard problem
+URLs in Texopic should be prefixed with #url macro word.
+The automatic recognition of URLs is impractical
 to solve in such way that it covers any and every valid URL
 you could pass into the text.
 </p><h2 id="10">
 10. History <a class="ref" href="#10">$</a>
 </h2><p>
-Texopic started as
-<a href="//github.com/cheery/lever/blob/master/documentation_considerations.tex">consideration</a> of using TeX for documentation in
+Texopic started out during an 
+<a href="//github.com/cheery/lever/blob/master/documentation_considerations.tex">assessment</a> of TeX for documentation in
 <a href="//leverlanguage.com">Lever</a>.
 </p><p>
-For Lever I wanted that reference documentation would be
+For Lever I wanted reference documentation to be
 written outside of the source files. The code would be
 annotated to refer on the reference, rather than the other
 way around.
 </p><p>
 Lever documentation flows upwards from the source code. This
-means that aside reference, there is internal documentation
+means that aside from reference, there is internal documentation
 that is sectioned by source files. That internal
 documentation is currently in text files, which felt very
 natural to write. I plan to section internal documentation
@@ -202,11 +214,17 @@ Many of the files designed for this purpose was unclear and
 it was hard to figure out what kind of notation they use.
 They appeared to be also difficult to customize.
 </p><p>
-With texopic I can completely customize my documentation
+With Texopic I can completely customize my documentation
 generation.
 </p><h2 id="11">
 11. Trivia <a class="ref" href="#11">$</a>
 </h2><p>
+While inspired by TeX, Texopic is neither TeX nor a
+superset of TeX.
+</p><p>
+Texopic name born as a wordplay from "TeX by Topic". Author
+thinks it sounds a bit like Aztec.
+</p><p>
 A small python script, texopic.py
 was the first instance of a readable typesetting format that
 could be used to documentation that matches to high standards.

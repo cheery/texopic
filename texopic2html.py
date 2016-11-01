@@ -2,6 +2,14 @@ import texopic
 import sys
 from texopic.generic import Env, eval_segment, verbatim
 from texopic.toc import Toc
+from texopic import html
+
+# hmm....
+# #begin{list}
+# #item Bananas
+# #item Milk
+# #item Bread
+# #end{list}
 
 class Document(object):
     def __init__(self):
@@ -10,8 +18,10 @@ class Document(object):
         self.body = []
 
 def main():
+    #print html.attr_escape('aaa <hello a=""> </world>')
     document = Document()
     for nodes in texopic.read_file(sys.argv[1]):
+        #print ''.join(map(str, nodes)), '-'
         document.body.extend(
             eval_segment(document, nodes, macros, default_mode))
     print html_template.format(document.title, ''.join(document.body))
@@ -79,9 +89,9 @@ html_template = u"""<html>
 <style>
 body {{ max-width: 75ex }}
 pre {{ border: 1px solid #cfcfcf; padding: 1em 4ex }}
-h2       > .ref {{ visibility: hidden; text-decoration: none; }}
+h2       > .ref {{ visibility: hidden; text-decoration: underline; }}
 h2:hover > .ref {{ visibility: visible !important }}
-h3       > .ref {{ visibility: hidden; text-decoration: none; }}
+h3       > .ref {{ visibility: hidden; text-decoration: underline; }}
 h3:hover > .ref {{ visibility: visible !important }}
 </style>
 </head>

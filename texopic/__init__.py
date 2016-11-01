@@ -47,7 +47,8 @@ def parse(tokens):
             else:
                 if not token.string.isspace():
                     last_macro = None
-                sequence.append(token.string)
+                if len(sequence) > 0 or not space:
+                    sequence.append(token.string)
         elif hexmacro.match(token.string):
             number = int(token.string[1:], 16)
             sequence.append(Escape(unichr(number), 'hex'))
