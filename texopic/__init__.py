@@ -1,3 +1,4 @@
+from structures import Escape, Macro, Pre
 import re
 import tokenizer
 
@@ -71,32 +72,8 @@ def parse(tokens):
                 last_macro = None
     while len(stack) > 0:
         sequence, count = stack.pop()
-    yield sequence
+    if len(sequence) > 0:
+        yield sequence
 
 hexmacro = re.compile(r"^#[0-9a-fA-F]{2}$")
 unimacro = re.compile(r"^#U\+[0-9a-fA-F]+$")
-
-class Escape(object):
-    def __init__(self, character, which='uni'):
-        self.character = character
-        self.which = which
-
-    def __str__(self):
-        return self.character
-
-class Macro(object):
-    def __init__(self, name):
-        self.name = name
-        self.groups = []
-
-    def __str__(self):
-        return ";" + self.name + ''.join(
-            '{'+''.join(map(str, group))+'}'
-            for group in self.groups) + ";"
-
-class Pre(object):
-    def __init__(self, string):
-        self.string = string
-
-    def __str__(self):
-        return ";##\n"
