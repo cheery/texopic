@@ -53,6 +53,14 @@ def macro_subsection(document, segment, link=None):
     text += ' <a class="ref" href="#{0}">$</a>'.format(link)
     yield '<{0} id="{2}">\n{1}\n</{0}>'.format('h3', text, link)
 
+@macros.modeset("#include", 1)
+def macro_include(document, segment, path):
+    path = verbatim(path) # TODO: make source file relative.
+    for nodes in texopic.read_file(path):
+        result = eval_segment(document, nodes, segment.macros, default_mode)
+        for text in result:
+            yield text
+
 @macros.normal("#url", 1)
 def macro_function(segment, url):
     return u'<a href="{0}">{0}</a>'.format(
