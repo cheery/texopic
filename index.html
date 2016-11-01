@@ -7,6 +7,8 @@ body { max-width: 75ex }
 pre { border: 1px solid #cfcfcf; padding: 1em 4ex }
 h2       > .ref { visibility: hidden; text-decoration: none; }
 h2:hover > .ref { visibility: visible !important }
+h3       > .ref { visibility: hidden; text-decoration: none; }
+h3:hover > .ref { visibility: visible !important }
 </style>
 </head>
 <body>
@@ -40,14 +42,37 @@ document.
 Whenever a macro is recognised, every texopic processor
 recognizes the exact same macros and structure.
 </p><h2 id="1">
-1. Character escapes <a class="ref" href="#1">$</a>
+1. Specification <a class="ref" href="#1">$</a>
+</h2><p>
+Overall, this document here should describe the texopic
+format in whole.
+</p><p>
+If the tool doesn't behave according to this document, the
+tool contains a bug.
+</p><h2 id="tools">
+2. Tools <a class="ref" href="#tools">$</a>
+</h2><p>
+<a href="https://github.com/cheery/texopic">Utility library for python</a>
+<a href="https://github.com/cheery/texopic/archive/master.zip">(Download)</a>
+</p><h3 id="2.1">
+2.1. Notes for utility library <a class="ref" href="#2.1">$</a>
+</h3><p>
+The library contains a module and scripts to generate html
+from texopic format. That generator has been written in such
+way that lets you build your own document processor from the
+pieces.
+</p><p>
+The repository for the utility library contains also the
+most up-to-date version of this document.
+</p><h2 id="3">
+3. Character escapes <a class="ref" href="#3">$</a>
 </h2><p>
 Texopic processors are expected to accept UTF-8 text. But
 they can also recognize two forms of character escapes:
 #XX and #U+XXXX. You can use both of these formats to
 represent unicode characters that mess up in the editor.
-</p><h2 id="2">
-2. Macro block ## <a class="ref" href="#2">$</a>
+</p><h2 id="4">
+4. Macro block ## <a class="ref" href="#4">$</a>
 </h2><p>
 Sometimes it is desirable to not let texopic format your
 text. For example when writing short code snippets, or
@@ -66,8 +91,8 @@ compatible WYSIWYG text processor around this format.
 </p><p>
 The semicolon after a ## macro prevents it from having an
 effect at the end of a line.
-</p><h2 id="3">
-3. Segment breaking <a class="ref" href="#3">$</a>
+</p><h2 id="5">
+5. Segment breaking <a class="ref" href="#5">$</a>
 </h2><p>
 Blank lines in texopic text breaks the text into segments.
 Also, the ## macro always ends a segment.
@@ -75,8 +100,8 @@ Also, the ## macro always ends a segment.
 Macros can be used to label a segment to give them a special
 meaning. #title, #section and #subsection have precisely
 that behavior.
-</p><h2 id="4">
-4. Macro grouping <a class="ref" href="#4">$</a>
+</p><h2 id="6">
+6. Macro grouping <a class="ref" href="#6">$</a>
 </h2><p>
 The { and } characters are used to group in texopic. They
 prevent newlines from breaking the segment.
@@ -105,8 +130,8 @@ These groups fuse with macros preceding them:
 
 #href
 {//example.org}
-{example}</pre><h2 id="5">
-5. Macro resolution <a class="ref" href="#5">$</a>
+{example}</pre><h2 id="7">
+7. Macro resolution <a class="ref" href="#7">$</a>
 </h2><p>
 To understand how texopic works through the document. It is
 accurate to think of it as a chain of functions.
@@ -124,12 +149,11 @@ At this point the control is on the user. She can choose
 which kind of output he wants. She can completely customize
 how the macros are interpreted by adjusting the output
 processors.
-</p><h2 id="6">
-6. Recognized macros <a class="ref" href="#6">$</a>
+</p><h2 id="8">
+8. Recognized macros <a class="ref" href="#8">$</a>
 </h2><p>
 This is a quick summary of what is recognized by the
-experimental texopic html processor at
-<a href="https://github.com/cheery/texopic">https://github.com/cheery/texopic</a>.
+<a href="https://github.com/cheery/texopic">texopic html processor</a>.
 </p><pre>#title
 ##
 #url{domain}
@@ -137,25 +161,15 @@ experimental texopic html processor at
 #section
 #subsection</pre><p>
 The macros try to follow conventions present in LaTeX.
-</p><h2 id="7">
-7. URL handling <a class="ref" href="#7">$</a>
+</p><h2 id="9">
+9. URL handling <a class="ref" href="#9">$</a>
 </h2><p>
 URLs in texopic should be prefixed with #url macro word.
 The automatic recognition of URLs is extremely hard problem
 to solve in such way that it covers any and every valid URL
 you could pass into the text.
-</p><h2 id="8">
-8. Notes <a class="ref" href="#8">$</a>
-</h2><p>
-Overall, this is a description of a format. This document
-should describe the texopic format in whole.
-</p><p>
-The document is accompanied by scripts to generate html in
-the repository. You can use them to create your own texopic
-document processors. Those scripts do not define the format
-though.
-</p><h2 id="9">
-9. History <a class="ref" href="#9">$</a>
+</p><h2 id="10">
+10. History <a class="ref" href="#10">$</a>
 </h2><p>
 Texopic started as
 <a href="//github.com/cheery/lever/blob/master/documentation_considerations.tex">consideration</a> of using TeX for documentation in
@@ -187,8 +201,8 @@ They appeared to be also difficult to customize.
 </p><p>
 With texopic I can completely customize my documentation
 generation.
-</p><h2 id="10">
-10. Trivia <a class="ref" href="#10">$</a>
+</p><h2 id="11">
+11. Trivia <a class="ref" href="#11">$</a>
 </h2><p>
 A small python script, texopic.py
 was the first instance of a readable typesetting format that

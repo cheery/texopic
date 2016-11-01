@@ -27,6 +27,36 @@ document.
 Whenever a macro is recognised, every texopic processor
 recognizes the exact same macros and structure.
 
+#section Specification
+
+Overall, this document here should describe the texopic
+format in whole.
+
+If the tool doesn't behave according to this document, the
+tool contains a bug.
+
+#section{tools} Tools
+
+#href{https://github.com/cheery/texopic}
+{Utility library for python}
+#href
+{https://github.com/cheery/texopic/archive/master.zip}
+{(Download)}
+
+#subsection Notes for utility library
+
+The library contains a module and scripts to generate html
+from texopic format. That generator has been written in such
+way that lets you build your own document processor from the
+pieces.
+
+The html generator doesn't escape HTML properly. That needs
+to be fixed later on.
+
+The repository for the utility library contains also the
+most up-to-date version of this document.
+
+
 #section Character escapes
 
 Texopic processors are expected to accept UTF-8 text. But
@@ -124,8 +154,7 @@ processors.
 #section Recognized macros
 
 This is a quick summary of what is recognized by the
-experimental texopic html processor at
-#url{https://github.com/cheery/texopic}. 
+#href{https://github.com/cheery/texopic}{texopic html processor}.
 
 ##
     #title
@@ -143,16 +172,6 @@ URLs in texopic should be prefixed with #;url macro word.
 The automatic recognition of URLs is extremely hard problem
 to solve in such way that it covers any and every valid URL
 you could pass into the text.
-
-#section Notes
-
-Overall, this is a description of a format. This document
-should describe the texopic format in whole.
-
-The document is accompanied by scripts to generate html in
-the repository. You can use them to create your own texopic
-document processors. Those scripts do not define the format
-though.
 
 #section History
 

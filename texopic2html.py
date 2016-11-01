@@ -1,11 +1,12 @@
 import texopic
 import sys
 from texopic.generic import Env, eval_segment, verbatim
+from texopic.toc import Toc
 
 class Document(object):
     def __init__(self):
         self.title = u""
-        self.h2_count = 0
+        self.toc = Toc()
         self.body = []
 
 def main():
@@ -31,16 +32,26 @@ def macro_title(document, segment):
     return "<{0}>\n{1}\n</{0}>".format('h1', text)
 
 @macros.modeset("#section", 0)
-def macro_section(document, segment):
-    document.h2_count += 1
-    tag = str(document.h2_count)
-    text = "{0}. ".format(document.h2_count) + segment.text.strip()
-    text += ' <a class="ref" href="#{0}">$</a>'.format(tag)
-    yield '<{0} id="{2}">\n{1}\n</{0}>'.format('h2', text, tag)
+@macros.modeset("#section", 1)
+def macro_section(document, segment, link=None):
+    text = segment.text.strip()
+    if link is not None:
+        link = verbatim(link)
+    label, link = document.toc.entry(0, text, link)
+    text = "{0}. {1}".format(label, text)
+    text += ' <a class="ref" href="#{0}">$</a>'.format(link)
+    yield '<{0} id="{2}">\n{1}\n</{0}>'.format('h2', text, link)
 
 @macros.modeset("#subsection", 0)
-def macro_subsection(document, segment):
-    yield "<{0}>\n{1}\n</{0}>".format('h3', segment.text.strip())
+@macros.modeset("#subsection", 1)
+def macro_subsection(document, segment, link=None):
+    text = segment.text.strip()
+    if link is not None:
+        link = verbatim(link)
+    label, link = document.toc.entry(1, text, link)
+    text = "{0}. {1}".format(label, text)
+    text += ' <a class="ref" href="#{0}">$</a>'.format(link)
+    yield '<{0} id="{2}">\n{1}\n</{0}>'.format('h3', text, link)
 
 @macros.normal("#url", 1)
 def macro_function(segment, url):
@@ -62,6 +73,8 @@ body {{ max-width: 75ex }}
 pre {{ border: 1px solid #cfcfcf; padding: 1em 4ex }}
 h2       > .ref {{ visibility: hidden; text-decoration: none; }}
 h2:hover > .ref {{ visibility: visible !important }}
+h3       > .ref {{ visibility: hidden; text-decoration: none; }}
+h3:hover > .ref {{ visibility: visible !important }}
 </style>
 </head>
 <body>
