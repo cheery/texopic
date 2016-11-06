@@ -9,6 +9,9 @@ class Escape(object):
     def __str__(self):
         return self.character
 
+    def __repr__(self):
+        return "Escape({!r})".format(self.character)
+
 class Macro(object):
     def __init__(self, name):
         self.name = name
@@ -19,9 +22,15 @@ class Macro(object):
             '{'+''.join(map(str, group))+'}'
             for group in self.groups) + ";"
 
+    def __repr__(self):
+        return "Macro({!r})".format(self.name)
+
 class Pre(object):
     def __init__(self, string):
         self.string = string
 
     def __str__(self):
         return ";##\n"
+
+    def __repr__(self):
+        return "Pre(...)"

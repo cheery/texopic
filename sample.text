@@ -112,19 +112,18 @@ compatible WYSIWYG text processor around this format.
 The semicolon after a ##; macro prevents it from having an
 effect at the end of a line.
 
-#section Segment breaking
+#section Blank lines
 
-Blank lines in Texopic text breaks the text into segments.
-Also, the ##; macro always ends a segment.
+Blank lines in Texopic text are interpreted as implicit
+macros. This is interpreted as a start of a new paragraph.
 
-Macros can be used to label a segment to give them a special
-meaning. #;title, #;section and #;subsection have precisely
-that behavior.
+Macros can be used to discard an empty paragraph and start a
+segment of text with special meaning. #;title, #;section;
+and #;subsection all have precisely that behavior.
 
 #section Macro grouping
 
-The { and } characters are used to group in Texopic. They
-prevent newlines from breaking the segment. 
+The { and } characters are used to group in Texopic.
 
 } and { characters can be used in the stream without worries
 as long as they pair properly inside the macro groups. They
@@ -157,24 +156,50 @@ These groups fuse with macros preceding them:
     {//example.org}
     {example}
 
+Macros have to be explicit before macro grouping
+applies to them. Grouping is not done on the implicitly
+created macros at line breaks.
+
 #section Macro resolution
 
-To understand how Texopic works through the document. It is
+To understand how Texopic document is processed it is
 accurate to think of it as a chain of functions.
 
 The first function transforms plaintext input into sequence
-of characters and macro words. Lines consumed by #;#; token
-are annotated into that token. The newlines followed by
-blanks and macros followed by ';' are marked.
+of characters and macro words. Lines consumed by ##; token
+are annotated to it. The newlines followed by blanks, and
+macros followed by ';' are marked.
 
 The second function forms segments from a sequence produced
 by the first function. The groups and macros are formed and
-no further parsing is needed after that point.
+no further parsing is necessary after that point.
 
 At this point the control is up to the user. She can choose
 which kind of output she wants. She can completely customize
 how the macros are interpreted by adjusting the output
 processors.
+
+#subsection Default processor behavior
+
+There is a default behavior for how outputting processor
+should work.
+
+#begin{itemize}
+#item It should maintain a buffer for the current text segment. 
+
+#item It should manage to create a new vertical list and a
+      buffer for a group or for a list itemization.
+
+#item Inside macro groups it should be allowed to ignore
+      implicit macros and other such commands that cause the
+      vertical list to grow.
+
+#item It should trim whitespace out of the start and end of a
+      paragraphs and refuse to produce empty paragraphs.
+
+#item It should not output empty paragraphs.
+#end
+
 
 #section Recognized macros
 
@@ -184,12 +209,31 @@ This is a quick summary of what is recognized by the
 ##
     #title
     ##
-    #url{domain}
-    #href{domain}{description}
+    #url{link}
+    #href{link}{description}
+    #image{link}
     #section
+    #section{id}
     #subsection
+    #subsection{id}
+    #begin{itemize}
+    #end{itemize}
+    #begin{enumerate}
+    #end{enumerate}
+    #item
+    #end
+    #comment
+    #begin{comment}
+    #end{comment}
 
 The macros try to follow conventions present in LaTeX.
+
+Additionally, on HTML output you have a #css -macro, you can
+use it like this:
+
+##
+    #css ##
+        body { padding: 0; margin: 0; }
 
 #section URL handling
 

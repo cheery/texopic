@@ -8,6 +8,9 @@ def read_file(path):
 def read_string(string):
     return parse(tokenizer.read_string(string))
 
+#TODO: convert to produce stream of tokens with
+# #par/0
+
 def parse(tokens):
     stack = []
     sequence = []
@@ -37,12 +40,13 @@ def parse(tokens):
                     count -= 1
                     sequence.append(token.string)
             elif token.nl and token.string == "\n" and not space:
-                if len(stack) == 0:
-                    yield sequence
-                    sequence = []
-                    space = True
-                else:
-                    sequence.append(token.string)
+                sequence.append(Macro(u""))
+                #if len(stack) == 0:
+                #    yield sequence
+                #    sequence = []
+                #    space = True
+                #else:
+                #    sequence.append(token.string)
                 last_macro = None
             else:
                 if not token.string.isspace():
@@ -60,10 +64,10 @@ def parse(tokens):
         elif token.string == "##" and token.pre is not None:
             sequence.append(Pre(token.pre))
             last_macro = None
-            if len(stack) == 0 and count == 0:
-                yield sequence
-                sequence = []
-                space = True
+#            if len(stack) == 0 and count == 0:
+#                yield sequence
+#                sequence = []
+#                space = True
         else:
             last_macro = Macro(token.string)
             sequence.append(last_macro)
@@ -73,8 +77,9 @@ def parse(tokens):
                 last_macro = None
     while len(stack) > 0:
         sequence, count = stack.pop()
-    if len(sequence) > 0:
-        yield sequence
+    return sequence
+#    if len(sequence) > 0:
+#        yield sequence
 
 hexmacro = re.compile(r"^#[0-9a-fA-F]{2}$")
 unimacro = re.compile(r"^#U\+[0-9a-fA-F]+$")

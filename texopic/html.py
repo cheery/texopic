@@ -10,42 +10,45 @@ import urllib
 # do XSS that a simple module such as this cannot
 # really ensure the produced markup is safe.
 
-class Generator(object):
-    def __init__(self):
-        self.output = []
-        self.verbatim = []
-
-    def begin(self, tag, attrs={}, extra=()):
-        data = [tag]
-        for name, value in attrs.items():
-            data.append('{0}="{1}"'.format(
-                name, attr_escape(value)))
-        data.extend(extra)
-        self.output.append('<' + ' '.join(data) + '>')
-
-    def end(self, tag):
-        self.output.append('</' + tag + '>')
-
-    def cr(self):
-        self.verbatim.append('\n')
-        self.output.append('\n')
-
-    def text(self, text):
-        self.verbatim.append(text)
-        self.output.append(body_escape(text))
-
-    def script(self, text):
-        self.output.append('<script>' + text + '</script>')
-
-    #def verify_url(self, url):
-    #    # possibly insufficient.
-    #    return not url.lower().startswith('javascript:')
-
-    def to_string(self):
-        return ''.join(self.output)
-
-    def to_verbatim(self):
-        return ''.join(self.verbatim)
+# Not used in whole.. Though left it in here because
+# it might turn out useful concept if output pretty-printing
+# desired of any kind.
+#class Generator(object):
+#    def __init__(self):
+#        self.output = []
+#        self.verbatim = []
+#
+#    def begin(self, tag, attrs={}, extra=()):
+#        data = [tag]
+#        for name, value in attrs.items():
+#            data.append('{0}="{1}"'.format(
+#                name, attr_escape(value)))
+#        data.extend(extra)
+#        self.output.append('<' + ' '.join(data) + '>')
+#
+#    def end(self, tag):
+#        self.output.append('</' + tag + '>')
+#
+#    def cr(self):
+#        self.verbatim.append('\n')
+#        self.output.append('\n')
+#
+#    def text(self, text):
+#        self.verbatim.append(text)
+#        self.output.append(body_escape(text))
+#
+#    def script(self, text):
+#        self.output.append('<script>' + text + '</script>')
+#
+#    #def verify_url(self, url):
+#    #    # possibly insufficient.
+#    #    return not url.lower().startswith('javascript:')
+#
+#    def to_string(self):
+#        return ''.join(self.output)
+#
+#    def to_verbatim(self):
+#        return ''.join(self.verbatim)
         
 
 # This attr_escape works as long as attributes are correctly quoted.
@@ -55,7 +58,7 @@ def attr_escape(attr):
         for c in attr)
 
 attr_whitelist = (
-    "!*'();:@=+$,/?#[]"
+    "!*'();:@=+$,/?#[] "
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789-_.~")
