@@ -1,172 +1,273 @@
 from structures import Escape, Macro, Pre
 # Generic functionality to create a texopic processor.
 #
-# Will likely change a bit over time.
+# This has changed a lot over time. It will likely still
+# change a bit, but I don't know when.
+# It feels pretty good now.
 # There is example of use in texopic2html.py -script.
 
 class Env(object):
-    def __init__(self):
-        self.env = {}
+    def __init__(self, parent=None):
+        self.parent = parent
+        self.scope = {}
 
-    def define(self, name, arity):
+    def define(self, *key):
         def _deco_(fn):
-            self.env[(name, arity)] = fn
+            self.scope[key] = fn
             return fn
         return _deco_
 
-    def __call__(self, ctx, name, groups):
-        key = (name, len(groups))
-        if key in self.env:
-            return self.env[key](ctx, *groups)
+    def lookup(self, *key):
+        if key in self.scope:
+            return self.scope[key]
+        elif self.parent:
+            return self.parent.lookup(*key)
         return None
 
-def invoke(group, document, **kwargs):
-    context = Context(document, **kwargs)
-    context = process(context, group)
-    while context.parent is not None:
-        context = context.end()
-    return context
+    def hcall(env, group, document):
+        context = Context(env, Horizontal(), document)
+        process(context, group)
+        while context.mode.parent != None:
+            mode = context.mode
+            mode.build(context, context.mode.data)
+            context.mode = mode.parent
+        return context.mode.data
 
-class Context(object):
-    def __init__(self, document, preformat, paragraph,
-            do_macro, do_begin,
-            block=None, name=None, parent=None):
-        self.builder = Builder(paragraph)
-        self.document = document
-        self.preformat = preformat
-        self.paragraph = paragraph
-        self.do_macro = do_macro
-        self.do_begin = do_begin
-        self.parent = parent
-        self.block = block
-        self.name = name
+    def vcall(env, group, document):
+        context = Context(env, Vertical(), document)
+        process(context, group)
+        while context.mode.parent != None:
+            mode = context.mode
+            mode.build(context, context.mode.data)
+            context.mode = mode.parent
+        return context.mode.data
 
-    # I was wondering if begin/end -functions should be here.
-    # But then I stopped worrying.
-    def begin(self, block, name=None):
-        return Context(self.document,
-            self.preformat, self.paragraph,
-            self.do_macro, self.do_begin,
-            block, name, self)
-
-    def end(self):
-        self.parent.builder.vertical.append(self.block.end(self))
-        return self.parent
-
-    def inside(self, name):
-        if name == self.name:
-            return True
-        elif self.parent is not None:
-            return self.parent.inside(name)
-
-    @property
-    def is_horizontal(self):
-        return len(self.builder.vertical) == 0
-
-    def pull_horizontal(self):
-        assert len(self.builder.vertical) == 0
-        group = self.builder.group
-        self.builder = Builder(self.paragraph)
-        return group
-
-    def pull_vertical(self):
-        vertical = self.builder.vertical
-        self.builder.next_group(self.paragraph)
-        self.builder = Builder(self.paragraph)
-        return vertical
-
-    def invoke(self, group):
-        context = Context(self.document, self.preformat, self.paragraph,
-            self.do_macro, self.do_begin)
-        context = process(context, group)
-        while context.parent is not None:
-            context = context.end()
-        return context
-
-def process(ctx, group):
+def process(context, group):
     for node in group:
         if isinstance(node, Escape):
-            ctx.builder.append(node.character)
+            context.emit_text(node.character)
         elif isinstance(node, (str, unicode)):
-            ctx.builder.append(node, node.isspace())
-        elif isinstance(node, Macro) and node.name == '':
-            ctx.builder.next_group_implicit = ctx.paragraph
-        elif isinstance(node, Pre):
-            if ctx.builder.pre_capture:
-                ctx.builder.args = [node.string] + list(ctx.builder.args)
-                ctx.builder.next_group(ctx.paragraph)
+            if node.isspace():
+                context.emit_space()
             else:
-                ctx.builder.next_group(ctx.paragraph)
-                ctx.builder.vertical.append(ctx.preformat(node.string))
+                context.emit_text(node)
         elif isinstance(node, Macro):
-            recover = True
-            if node.name == "#begin" and len(node.groups) >= 1:
-                name = verbatim(node.groups[0])
-                new_ctx = ctx.do_begin(ctx, name, node.groups[1:])
-                if new_ctx is not None:
-                    recover = False
-                    ctx.builder.next_group(ctx.paragraph)
-                    ctx = new_ctx
-                    ctx.name = name
-            elif node.name == "#end":
-                if len(node.groups) == 0 and ctx.parent is not None:
-                    recover = False
-                    ctx = ctx.end()
-                    ctx.builder.next_group(ctx.paragraph)
-                else:
-                    name = verbatim(node.groups[0])
-                    if len(node.groups) == 1 and ctx.inside(name):
-                        recover = False
-                        while ctx.inside(name):
-                            ctx = ctx.end()
+            try:
+                macro_process(context, node.name, node.groups)
+            except Suspend as s:
+                context.emit_text(node.name)
+                for subgroup in node.groups:
+                    context.emit_text('{')
+                    process(context, subgroup)
+                    context.emit_text('}')
+        elif isinstance(node, Pre):
+            context.emit_pre(node.string)
+        else:
+            context.emit_text(repr(node))
+
+def macro_process(context, name, groups):
+    if name == '':
+        context.end_group()
+    elif name == "#begin":
+        if len(groups) >= 1:
+            block_name = verbatim(groups[0])
+            args = groups[1:]
+            macro = context.env.lookup(":" + block_name, len(args))
+            if macro is None:
+                raise Suspend()
             else:
-                x = ctx.do_macro(ctx, node.name, node.groups)
-                if x is not None:
-                    recover = False
-                    if x != "":
-                        ctx.builder.append(x)
-            if recover:
-                ctx.builder.append(node.name)
-                for group in node.groups:
-                    ctx.builder.append('{')
-                    ctx = process(ctx, group)
-                    ctx.builder.append('}')
+                context.goto_vertical()
+                context.mode = Vertical(context.mode, block_name,
+                    **macro(context, *args))
+    elif name == "#end":
+        if len(groups) == 0:
+            base, cake = collapse_frame(context)
+            base.build(context, cake)
         else:
-            assert False, repr(node)
-    return ctx
+            block_name = verbatim(groups[0])
+            if context.in_cake(block_name):
+                while context.in_cake(block_name):
+                    base, cake = collapse_frame(context)
+                    base.build(context, cake)
+            else:
+                raise Suspend()
+    else:
+        macro = context.env.lookup(name, len(groups))
+        if macro is None:
+            raise Suspend()
+        else:
+            output = macro(context, *groups)
+            if output is not None:        # makes it bit simpler to write
+                context.emit_text(output) # to write common macros.
 
-# There was quite big egg/chicken-contest between the Builder
-# and the Context.
-class Builder(object):
-    def __init__(self, fn, *args):
-        self.vertical = []
+def collapse_frame(context):
+    mode = context.mode
+    while mode is not None and not isinstance(mode, Vertical):
+        mode = mode.parent
+    if isinstance(mode, Vertical) and mode.parent is not None:
+        cake = Cake(context, context.mode)
+        context.mode = mode.parent
+        return mode, cake
+    raise Suspend()
 
-        self.group = []
+class Cake(object):
+    def __init__(self, context, chain):
+        self.context = context
+        self.chain = chain
+
+    @property
+    def is_empty(self):
+        if self.is_group:
+            return len(self.chain.data) == 0
+        elif isinstance(self.chain, Vertical):
+            return len(self.chain.data) == 0
+
+    @property
+    def is_group(self):
+        if isinstance(self.chain, Horizontal):
+            return len(self.chain.parent.data) == 0
+        return False
+
+    def as_group(self):
+        assert self.is_group
+        data = self.chain.data
+        self.chain.data = []
+        if self.context.mode is self.chain:
+            self.context.mode = self.chain.parent
+        self.chain = None
+        return data
+
+    def as_list(self):
+        mode = self.context.mode
+        self.context.mode = self.chain
+        self.context.goto_vertical()
+        if mode is self.chain:
+            self.chain = self.context.mode
+        else:
+            self.chain = self.context.mode
+            self.context.mode = mode
+        data = self.chain.data
+        self.chain.data = []
+        self.chain = None
+        return data
+
+class Vertical(object):
+    def __init__(self, parent=None, name=None, build=None, block=None):
+        self.parent = parent
+        self.data = []
+        self.name = name
+        self.build = build
+        self.block = block
+
+    def emit(self, value):
+        self.data.append(value)
+
+    is_restricted = False
+
+    def builder(self, fn):
+        self.build = fn
+
+class Horizontal(object):
+    def __init__(self, parent=None, build=None):
+        self.parent = parent
+        self.data = []
+        self.ended = False
         self.space = False
-        self.fn = fn
-        self.args = args
-        self.pre_capture = False
-        self.next_group_implicit = None
+        self.capture_pre = False
+        self.build = build
 
-    def next_group(self, fn, *args):
-        if len(self.group) > 0:
-            self.vertical.append(self.fn(self.group, *self.args))
-            self.group = []
-        self.fn = fn
-        self.args = args
-        self.next_group_implicit = None
-        self.pre_capture = False
+    def emit(self, value):
+        if self.space:
+            self.data.append(' ')
+        self.space = False
+        self.data.append(value)
 
-    def append(self, value, is_space=False):
-        if is_space:
-            self.space = True
+    @property
+    def block(self):
+        return self.parent.block if self.parent is not None else None
+
+    @property
+    def is_restricted(self):
+        return not isinstance(self.parent, Vertical)
+
+    def builder(self, fn):
+        self.build = fn
+
+class Context(object):
+    def __init__(self, env, mode, document):
+        self.env = env
+        self.mode = mode
+        self.document = document
+
+    def emit(self, value):
+        self.goto_vertical()
+        self.mode.emit(value)
+
+    def emit_text(self, value):
+        if not isinstance(self.mode, Horizontal) or self.mode.ended:
+            self.next_group(self.env.lookup("paragraph"))
+        self.mode.emit(value)
+
+    def emit_space(self):
+        if isinstance(self.mode, Horizontal) and len(self.mode.data) > 0:
+            self.mode.space = True
+
+    def emit_pre(self, string):
+        if isinstance(self.mode, Horizontal):
+            if self.mode.capture_pre:
+                mode, self.mode = self.mode, self.mode.parent
+                mode.build(self, mode.data, string)
+            else:
+                self.goto_vertical()
+        if self.mode.is_restricted:
+            self.mode.emit(("##\n"+string).replace('\n', '    '))
         else:
-            if self.space and len(self.group) > 0:
-                self.group.append(' ')
-            self.space = False
-            if self.next_group_implicit is not None:
-                self.next_group(self.next_group_implicit)
-            self.group.append(value)
+            self.env.lookup("preformat")(self, string)
+
+    def next_group(self, builder): # suspended in restricted horizontal mode.
+        self.goto_vertical()
+        self.mode = Horizontal(self.mode, builder)
+        return self.mode
+
+    def goto_vertical(self):
+        if self.mode.is_restricted:
+            raise Suspend()
+        if isinstance(self.mode, Horizontal):
+            mode, self.mode = self.mode, self.mode.parent
+            mode.build(self, mode.data)
+        
+    # does not yet .build() it. But causes the next emit to
+    # create new paragraph.
+    def end_group(self):  # ignored in restricted horizontal mode.
+        if self.mode.is_restricted:
+            return
+        if isinstance(self.mode, Horizontal):
+            self.mode.ended = True
+
+    def in_cake(self, name):
+        mode = self.mode
+        while mode is not None:
+            if isinstance(mode, Vertical) and mode.name == name:
+                return True
+            mode = mode.parent
+        return False
+    
+    @property
+    def block(self):
+        return self.mode.block
+
+    def get_cake(self):
+        return Cake(self, self.mode)
+
+    def hcall(self, group):
+        return self.env.hcall(group, self.document)
+
+    def vcall(self, group):
+        return self.env.vcall(group, self.document)
+
+# Raise this when you don't want to do something.
+class Suspend(Exception):
+    pass
 
 # Some groups, such as contents of #begin need to be
 # interpreted as plain text.
