@@ -71,7 +71,9 @@ class Printer(object):
         elif isinstance(x, Right):
             if self.layout.parent:
                 self.layout = self.layout.parent
-            return 0
+                self.spaces = self.layout.spaces # hmm.. this was missing and this
+                                                 # was a fix to it. I wonder if
+            return 0                             # it was correct fix.
         elif isinstance(x, Blank):
             if (x.size < 0 or self.spaceleft < x.size or
                     self.layout.force_break and x.forceable):
@@ -97,6 +99,10 @@ class Layout(object):
         self.parent = parent
         self.spaces = spaces
         self.force_break = force_break
+
+    def __repr__(self):
+        return "L{1}:{2}, {0}".format(
+            self.parent, self.spaces, self.force_break)
 
 # These objects are mutated by the scanner, so they cannot
 # be reused. Users of the pretty printer should not create

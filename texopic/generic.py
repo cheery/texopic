@@ -37,9 +37,8 @@ class Env(object):
         context = Context(env, Vertical(), document)
         process(context, group)
         while context.mode.parent != None:
-            mode = context.mode
-            mode.build(context, context.mode.data)
-            context.mode = mode.parent
+            mode, context.mode = context.mode, context.mode.parent
+            mode.build(context, mode.data)
         return context.mode.data
 
 def process(context, group):
