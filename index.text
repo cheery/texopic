@@ -64,6 +64,7 @@ tool contains a bug.
 
 #href{https://github.com/cheery/texopic}
 {Utility library for python}
+#href{guide.html}{(Guide)}
 #href
 {https://github.com/cheery/texopic/archive/master.zip}
 {(Download)}
@@ -74,9 +75,6 @@ The library contains a module and scripts to generate html
 from Texopic format. That generator has been written in such
 way that lets you build your own document processor from the
 pieces.
-
-The html generator doesn't escape HTML properly. That needs
-to be fixed later on.
 
 The repository for the utility library contains also the
 most up-to-date version of this document.
@@ -290,11 +288,11 @@ could be used to documentation that matches to high standards.
 Later on, it became the
 #href{//github.com/cheery/texopic/blob/master/texopic2html.py}{texopic2html.py}
 
-This file has been generated from #url{sample.text} with the
+This file has been generated from #url{index.text} with the
 following linux command:
 
 ##
-    python texopic2html.py sample.text > index.html
+    python texopic2html.py index.text > index.html
 
 #section{license} License
 

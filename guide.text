@@ -1,0 +1,440 @@
+#title Guide for Texopic Python module
+
+#description
+Explains how the Texopic Python module works, and how to use
+it.
+
+This document works as a guide for the texopic python
+module. It explains what to expect from this module and how
+to use it.
+
+
+#section Basic functionality
+
+The following code emits every token and character that
+texopic finds in the stream.
+
+#sample ##
+    import texopic
+
+    for token in texopic.read_file("index.text"):
+        print token
+
+This is the most primitive part of texopic. It doesn't load
+other modules by design. It allows you to implement
+completely custom logic over the language.
+
+There are several helpers you should use though, because
+they help in generating texopic documents a great deal.
+
+#section Generic document generator
+
+The generic parts of the document generator can be found in
+the texopic.generic module. The key piece in this system is
+the environment object.
+
+The following program forms a generator from the generic
+module. We go through it by pieces.
+
+#sample ##
+    import texopic
+    from texopic.generic import Env, verbatim
+
+    def main():
+        group = texopic.read_file("guide.text")
+        for line in env.vcall(group, document=None):
+            print line
+
+    env = Env()
+    @env.define("paragraph")
+    def env_paragraph(context, group):
+        context.emit(verbatim(group))
+
+    @env.define("preformat")
+    def env_preformat(context, string):
+        context.emit(string)
+
+    if __name__=='__main__':
+        main()
+
+#subsection verbatim function
+
+#bold{verbatim} function returns a string that is as close
+to the verbatim version of the input group as it can be. It
+is meant for retrieving URLs from the macro groups.
+
+Internally it is used to retrieve the identifier inside
+#;begin and #;end clauses.
+
+#subsection Env
+
+Environment object, #bold{Env}, works as a namespace for the
+generator. The environment objects can be stacked to create
+namespace cakes for customizing generators.
+
+#bold{Env.define} can be used to define functions into the
+namespace. At minimum the namespace must contain the
+"paragraph" and "preformat" -functions. Rest of it describes
+behavior for macros.
+
+Functions labelled such as #bold{#macroname} and
+#bold{:macroname} allow the user to customize the behavior
+of respective macros, or #;begin/#;end -block. This is
+explained further in #href{#customizing}{Customizing
+macros}.
+
+Env also has functions #bold{.hcall} and #bold{.vcall} that
+user can call. They have to discussed along some functions
+from Context.
+
+#subsection Context
+
+Context is a helper for customizing the behavior of the
+Vertical/Horizontal stack machine of the generator. It
+contains a #bold{.document} object that can be chosen
+directly.
+
+If one of the functions attempts to shift into vertical
+mode, but that is impossible, it will raise #bold{Suspend()}
+-exception. The Suspend() will be catched by the code that
+evaluates custom macros and causes it to write the macro in
+literal form into the document as backup measure.
+
+#bold{Context.emit(value)} runs the machine into vertical
+mode and appends the value into vertical list.
+
+#bold{Context.next_group(builder)} starts a new horizontal
+mode that builds with the builder function once finished.
+
+#bold{Context.end_group()} forces the current mode to stop.
+
+#bold{Context.in_cake(name)} returns True or False,
+depending on whether the name is in the stack 'cake'.
+
+#bold{Context.block} property retrieves a topmost block from
+the stack 'cake'. This cake term is explained later.
+
+#bold{Context.get_cake()} retrieves an object that allows
+the customization to empty topmost portions of the stack cake.
+
+#bold{Context.hcall(group)} starts a new context with same
+document and same env. The context starts in horizontal
+mode and cannot switch to vertical. Gives a horizontal
+list as result.
+
+#bold{Context.vcall(group)} starts a new context with same
+document and same env. The context starts in vertical
+mode. Returns a vertical list.
+
+#bold{Env.hcall(group, document)} and #bold{Env.vcall(group,
+document)} behave same as those context functions except
+that you can use these to select the environment and the
+document. In fact Context functions are shorthands into
+#bold{context.env.*call(group, context.document)}.
+
+#section Pretty printing
+
+Texopic has a pretty printing module that implements the
+algorithm described by the Stanford University report
+#href{http://i.stanford.edu/TR/CS-TR-79-770.html}{CS-TR-79-770}.
+
+The pretty printing is not a focus of the module, so here's
+just a sample program that illustrates what it can do:
+
+#sample ##
+    from texopic.printer import Scanner
+    from StringIO import StringIO
+
+    for margin in [20, 10, 80]:
+        scan = Scanner(StringIO(), margin)
+        scan("(").left().blank("", 2)
+        scan.left()
+        scan("hello").blank(" ", forceable=False)("world")
+        scan.right()
+        scan.blank(", ", 2)
+        scan("second").blank(" ", 2)("line")
+        scan.blank(" ")(")").right()
+        scan.finish()
+
+        print scan.printer.fd.getvalue()
+
+Console output:
+
+#sample console ##
+    cheery@ruttunen:~/Documents/texopic$ python scratch.py 
+    (
+      hello world
+      second
+      line
+    )
+
+    (
+      hello
+      world
+      second
+      line
+    )
+
+    (hello world, second line)
+
+    cheery@ruttunen:~/Documents/texopic$ 
+
+
+#section HTML module
+
+texopic.html module is ensuring that valid HTML markup is
+easy to generate.
+
+#sample ##
+    from texopic import html
+    body = html.Block([
+        html.Node('a',
+            ["hello"],
+            {
+                "href": html.URL("//example.org")
+            },
+            extra=['disabled'],
+            space_sensitive=False, # True if tag is 'pre'
+            slash=True # if True end element with />
+                       # if False end element with >
+        ),
+        html.Raw("<script>alert(1);</script>")
+    ])
+    print html.stringify(body, margin=30)
+
+Output:
+
+#sample console ##
+    cheery@ruttunen:~/Documents/texopic$ python scratch.py 
+    <a
+      href="//example.org"
+      disabled>hello
+    </a><script>alert(1);</script>
+
+#subsection URL validation missing
+
+Although you can identify URLs in the markup for validation
+purposes, Texopic html module doesn't come with validation
+of URLs or XSS prevention.
+
+XSS prevention during generating markup from unsafe sources
+is futile attempt because the HTML can be interpreted in
+vastly different ways today. Whitelisting simply cannot
+account for yet another markup language strapped on top of
+HTML introducing new notation that evaluates code from
+markup. 
+
+Texopic nopes out of doing XSS-prevention for now. It is
+impossible to do it properly given the current
+circumstances.
+
+#section Table of contents module
+
+#sample ##
+    from texopic.toc import Toc
+
+    toc = Toc()
+
+    print toc.entry(0, "hello", link=None)
+    print toc.entry(1, "test")
+    print toc.entry(0, "world", link="sample")
+
+    print toc.data
+
+Output:
+
+#sample console ##
+    cheery@ruttunen:~/Documents/texopic$ python scratch.py 
+    ('1', '1')
+    ('1.1', '1.1')
+    ('2', 'sample')
+    [('1', '1', 'hello'), ('1.1', '1.1', 'test'), ('2', 'sample', 'world')]
+    cheery@ruttunen:~/Documents/texopic$ 
+
+
+#section default_html_env
+
+#sample ##
+    from texopic.default_html_env import env
+
+    env = Env()
+    # add your customizations here.
+
+The default_html_env uses the earlier html module to create
+HTML document fragments. It implements several useful macros
+listed below:
+
+##
+    #title
+    #section
+    #section{link}
+    #subsection
+    #subsection{link}
+    #bold{group}
+    #comment
+    #begin{comment}
+    #begin{itemize}
+    #begin{enumerate}
+    #item
+    #image{url}
+    #image{url}{alt}
+    #href{url}
+    #href{url}{desc}
+
+#section Larger example
+
+You need to install
+#href{http://pygments.org/}{pygments}
+to get this example run.
+
+#include_code{python}{texopic2html.py}
+
+#section{customizing} Macro customization
+
+You likely have good clue about how to extend Texopic with
+your own macros so far. To make it clear here are few
+complete samples about macros in Texopic.
+
+#subsection Ordinary macro
+
+Ordinary macro is just replacing itself with some content
+and starts a horizontal mode. This happens if you return
+something from the macro.
+
+#sample ##
+    @env.define("#italic", 1)
+    def env_italic(context, group):
+        return html.Node('i', group)
+
+The above code would parse #;italic{group} macro.
+
+#subsection Segment macro
+
+Segments are paragraph-level constructs meant for
+customizing behavior of horizontal lists. The simplest
+construct such as this just writes out a differently
+formatted horizontal list.
+
+#sample ##
+    @env.define("#claim", 0)
+    def env_claim(context):
+        @context.next_group
+        def _build_claim_(context, group):
+            context.emit(html.Node("p", group,
+                {"class":"claim"}))
+
+Using such macros as this #;claim always starts a new
+horizontal mode and creates a horizontal list.
+
+#subsection Stack macros
+
+#sample ##
+    @env.define(":enumerate", 0)
+    def env_begin_itemize(context):
+        block = Itemize()
+        def _build_(context, cake):
+            block.item(cake)
+            context.emit(html.Node('ol', block.data))
+        return {"build": _build_, "block": block}
+
+    @env.define("#item", 0)
+    def env_item(context):
+        if isinstance(context.mode.block, Itemize):
+            context.block.item(context.get_cake())
+        else:
+            raise Suspend()
+
+    class Itemize(object):
+        def __init__(self):
+            self.data = []
+
+        def item(self, cake):
+            if cake.is_empty and len(self.data) == 0:
+                pass # the first #item
+            elif cake.is_group:
+                self.data.append(html.Node('li', cake.as_group()))
+            else:
+                self.data.append(html.Node('li', cake.as_list()))
+
+These macros parse input:
+
+##
+    #begin{enumerate}
+    #item X
+    #item Y
+    #item Z
+    #end{enumerate}
+
+And produce:
+
+#begin{enumerate}
+#item X
+#item Y
+#item Z
+#end
+
+This is what is referred to with the term 'cake stack'.
+The block macros push a vertical mode and allow to
+create nested vertical lists.
+
+#subsection Capture preformat block
+
+#sample ##
+    @env.define("#sample", 0)
+    def env_sample(context):
+        @context.next_group
+        def _build_sample_(context, group, code=""):
+            lexer_name = verbatim(group).strip()
+            pass # do some formatting for code here.
+        _build_sample_.capture_pre = True
+
+This is parsing the #;sample lexer_name ##; and is meant for
+controlling how preformatted blocks are interpreted.
+
+#section Larger website construction with makefiles
+
+Clean makefiles aren't difficult to write. Get a guide if
+you don't know how.
+
+#include_code{makefile}{Makefile}
+
+Avoid cyclic dependencies and you're all right. Practically
+this means that don't have make rules that depend on the
+make rules coming before it.
+
+#section Contribution
+
+As an useful tip, the following command installs this
+package with a symlink so that changes to the sources will
+be immediately available to the users of the package.
+
+#sample console ##
+    $ pip install -e .
+
+#href{http://python-packaging.readthedocs.io/en/latest/minimal.html}
+{Python's module packaging} is an useful link to anyone who
+wants to make his own packages for Python.
+
+#subsection Optimizations require benchmarks
+
+There is a common practice that enthusiastic people come to
+optimize other peoples code because they think certain
+things are right or correct to do or more efficient.
+
+Outcome of unbenchmarked optimizations is unclear code and
+no benefits. Therefore you should attach a benchmark that
+lets the others verify your optimization works along your
+commits.
+
+#subsection Automatic tests demand explanations
+
+Programming profession doesn't lack people ready to work for
+just sake of labour.
+
+If you write an automated test for
+something or employ automated test framework on this code,
+you are expected to explain what you are doing and why.
+
+#section License
+
+#include{LICENSE.md}

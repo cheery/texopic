@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Guide for Texopic Python module</title><meta
+  content="Explains how the Texopic Python module works, and how to use it."
+  name="description">
+<style>
+body { max-width: 75ex }
+body > pre { border: 1px solid #cfcfcf; padding: 1em 4ex }
+h2       > .ref { visibility: hidden; text-decoration: underline; }
+h2:hover > .ref { visibility: visible !important }
+h3       > .ref { visibility: hidden; text-decoration: underline; }
+h3:hover > .ref { visibility: visible !important }
+
+.sourcetable pre { margin: 0; }
+.sourcetable .linenos { padding-left: 1ex; padding-right: 1ex;
+    border-right: 1px solid black; }
+</style><link
+  href="pygments-style.css"
+  type="text/css"
+  rel="stylesheet"/>
+
+</head>
+<body>
+<h1>Guide for Texopic Python module</h1><p>
+This document works as a guide for the texopic python module. It
+explains what to expect from this module and how to use it.
+</p><h2 id="1">1. Basic functionality <a href="#1" class="ref">$</a>
+</h2><p>
+The following code emits every token and character that texopic finds
+in the stream.
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="source"><pre><span class="kn">import</span> <span class="nn">texopic</span>
+
+<span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">texopic</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s2">&quot;index.text&quot;</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">token</span>
+</pre></div>
+</td></tr></table><p>
+This is the most primitive part of texopic. It doesn&#x27;t load other
+modules by design. It allows you to implement completely custom logic
+over the language.
+</p><p>
+There are several helpers you should use though, because they help in
+generating texopic documents a great deal.
+</p><h2 id="2">
+2. Generic document generator <a href="#2" class="ref">$</a>
+</h2><p>
+The generic parts of the document generator can be found in the
+texopic.generic module. The key piece in this system is the
+environment object.
+</p><p>
+The following program forms a generator from the generic module. We go
+through it by pieces.
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19</pre></div></td><td class="code"><div class="source"><pre><span class="kn">import</span> <span class="nn">texopic</span>
+<span class="kn">from</span> <span class="nn">texopic.generic</span> <span class="kn">import</span> <span class="n">Env</span><span class="p">,</span> <span class="n">verbatim</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">texopic</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s2">&quot;guide.text&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">vcall</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">document</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">line</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">Env</span><span class="p">()</span>
+<span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;paragraph&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_paragraph</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">verbatim</span><span class="p">(</span><span class="n">group</span><span class="p">))</span>
+
+<span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;preformat&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_preformat</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</td></tr></table><h3
+  id="2.1">2.1. verbatim function <a href="#2.1" class="ref">$</a>
+</h3><p>
+<b>verbatim</b> function returns a string that is as close to the
+verbatim version of the input group as it can be. It is meant for
+retrieving URLs from the macro groups.
+</p><p>
+Internally it is used to retrieve the identifier inside #begin and
+#end clauses.
+</p><h3 id="2.2">2.2. Env <a href="#2.2" class="ref">$</a></h3><p>
+Environment object, <b>Env</b>, works as a namespace for the
+generator. The environment objects can be stacked to create namespace
+cakes for customizing generators.
+</p><p>
+<b>Env.define</b> can be used to define functions into the namespace.
+At minimum the namespace must contain the &quot;paragraph&quot; and
+&quot;preformat&quot; -functions. Rest of it describes behavior for
+macros.
+</p><p>
+Functions labelled such as <b>#macroname</b> and <b>:macroname</b>
+allow the user to customize the behavior of respective macros, or
+#begin&#x2F;#;end -block. This is explained further in <a
+  href="#customizing">Customizing macros</a>.
+</p><p>
+Env also has functions <b>.hcall</b> and <b>.vcall</b> that user can
+call. They have to discussed along some functions from Context.
+</p><h3 id="2.3">2.3. Context <a href="#2.3" class="ref">$</a></h3><p>
+Context is a helper for customizing the behavior of the
+Vertical&#x2F;Horizontal stack machine of the generator. It contains a
+<b>.document</b> object that can be chosen directly.
+</p><p>
+If one of the functions attempts to shift into vertical mode, but that
+is impossible, it will raise <b>Suspend()</b> -exception. The
+Suspend() will be catched by the code that evaluates custom macros and
+causes it to write the macro in literal form into the document as
+backup measure.
+</p><p>
+<b>Context.emit(value)</b> runs the machine into vertical mode and
+appends the value into vertical list.
+</p><p>
+<b>Context.next_group(builder)</b> starts a new horizontal mode that
+builds with the builder function once finished.
+</p><p><b>Context.end_group()</b> forces the current mode to stop.
+</p><p>
+<b>Context.in_cake(name)</b> returns True or False, depending on
+whether the name is in the stack &#x27;cake&#x27;.
+</p><p>
+<b>Context.block</b> property retrieves a topmost block from the stack
+&#x27;cake&#x27;. This cake term is explained later.
+</p><p>
+<b>Context.get_cake()</b> retrieves an object that allows the
+customization to empty topmost portions of the stack cake.
+</p><p>
+<b>Context.hcall(group)</b> starts a new context with same document
+and same env. The context starts in horizontal mode and cannot switch
+to vertical. Gives a horizontal list as result.
+</p><p>
+<b>Context.vcall(group)</b> starts a new context with same document
+and same env. The context starts in vertical mode. Returns a vertical
+list.
+</p><p>
+<b>Env.hcall(group, document)</b> and <b>Env.vcall(group, document)
+</b> behave same as those context functions except that you can use
+these to select the environment and the document. In fact Context
+functions are shorthands into <b>
+context.env.*call(group, context.document)
+</b>.
+</p><h2 id="3">3. Pretty printing <a href="#3" class="ref">$</a>
+</h2><p>
+Texopic has a pretty printing module that implements the algorithm
+described by the Stanford University report <a
+  href="http://i.stanford.edu/TR/CS-TR-79-770.html">CS-TR-79-770</a>.
+</p><p>
+The pretty printing is not a focus of the module, so here&#x27;s just
+a sample program that illustrates what it can do:
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="source"><pre><span class="kn">from</span> <span class="nn">texopic.printer</span> <span class="kn">import</span> <span class="n">Scanner</span>
+<span class="kn">from</span> <span class="nn">StringIO</span> <span class="kn">import</span> <span class="n">StringIO</span>
+
+<span class="k">for</span> <span class="n">margin</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">80</span><span class="p">]:</span>
+    <span class="n">scan</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(),</span> <span class="n">margin</span><span class="p">)</span>
+    <span class="n">scan</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">left</span><span class="p">()</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">scan</span><span class="o">.</span><span class="n">left</span><span class="p">()</span>
+    <span class="n">scan</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">forceable</span><span class="o">=</span><span class="bp">False</span><span class="p">)(</span><span class="s2">&quot;world&quot;</span><span class="p">)</span>
+    <span class="n">scan</span><span class="o">.</span><span class="n">right</span><span class="p">()</span>
+    <span class="n">scan</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">scan</span><span class="p">(</span><span class="s2">&quot;second&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)(</span><span class="s2">&quot;line&quot;</span><span class="p">)</span>
+    <span class="n">scan</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">right</span><span class="p">()</span>
+    <span class="n">scan</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+
+    <span class="k">print</span> <span class="n">scan</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">fd</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+</pre></div>
+</td></tr></table><p>
+Console output:
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17</pre></div></td><td class="code"><div class="source"><pre><span class="gp">cheery@ruttunen:~/Documents/texopic$</span> python scratch.py 
+<span class="go">(</span>
+<span class="go">  hello world</span>
+<span class="go">  second</span>
+<span class="go">  line</span>
+<span class="go">)</span>
+
+<span class="go">(</span>
+<span class="go">  hello</span>
+<span class="go">  world</span>
+<span class="go">  second</span>
+<span class="go">  line</span>
+<span class="go">)</span>
+
+<span class="go">(hello world, second line)</span>
+
+<span class="gp">cheery@ruttunen:~/Documents/texopic$</span>
+</pre></div>
+</td></tr></table><h2
+  id="4">4. HTML module <a href="#4" class="ref">$</a></h2><p>
+texopic.html module is ensuring that valid HTML markup is easy to
+generate.
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="source"><pre><span class="kn">from</span> <span class="nn">texopic</span> <span class="kn">import</span> <span class="n">html</span>
+<span class="n">body</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Block</span><span class="p">([</span>
+    <span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s2">&quot;hello&quot;</span><span class="p">],</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="s2">&quot;//example.org&quot;</span><span class="p">)</span>
+        <span class="p">},</span>
+        <span class="n">extra</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;disabled&#39;</span><span class="p">],</span>
+        <span class="n">space_sensitive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="c1"># True if tag is &#39;pre&#39;</span>
+        <span class="n">slash</span><span class="o">=</span><span class="bp">True</span> <span class="c1"># if True end element with /&gt;</span>
+                   <span class="c1"># if False end element with &gt;</span>
+    <span class="p">),</span>
+    <span class="n">html</span><span class="o">.</span><span class="n">Raw</span><span class="p">(</span><span class="s2">&quot;&lt;script&gt;alert(1);&lt;/script&gt;&quot;</span><span class="p">)</span>
+<span class="p">])</span>
+<span class="k">print</span> <span class="n">html</span><span class="o">.</span><span class="n">stringify</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+</pre></div>
+</td></tr></table><p>
+Output:
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="source"><pre><span class="gp">cheery@ruttunen:~/Documents/texopic$</span> python scratch.py 
+<span class="go">&lt;a</span>
+<span class="go">  href=&quot;//example.org&quot;</span>
+<span class="go">  disabled&gt;hello</span>
+<span class="go">&lt;/a&gt;&lt;script&gt;alert(1);&lt;/script&gt;</span>
+</pre></div>
+</td></tr></table><h3
+  id="4.1">
+4.1. URL validation missing <a href="#4.1" class="ref">$</a>
+</h3><p>
+Although you can identify URLs in the markup for validation purposes,
+Texopic html module doesn&#x27;t come with validation of URLs or XSS
+prevention.
+</p><p>
+XSS prevention during generating markup from unsafe sources is futile
+attempt because the HTML can be interpreted in vastly different ways
+today. Whitelisting simply cannot account for yet another markup
+language strapped on top of HTML introducing new notation that
+evaluates code from markup.
+</p><p>
+Texopic nopes out of doing XSS-prevention for now. It is impossible to
+do it properly given the current circumstances.
+</p><h2 id="5">
+5. Table of contents module <a href="#5" class="ref">$</a>
+</h2><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="source"><pre><span class="kn">from</span> <span class="nn">texopic.toc</span> <span class="kn">import</span> <span class="n">Toc</span>
+
+<span class="n">toc</span> <span class="o">=</span> <span class="n">Toc</span><span class="p">()</span>
+
+<span class="k">print</span> <span class="n">toc</span><span class="o">.</span><span class="n">entry</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">link</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">toc</span><span class="o">.</span><span class="n">entry</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">toc</span><span class="o">.</span><span class="n">entry</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;world&quot;</span><span class="p">,</span> <span class="n">link</span><span class="o">=</span><span class="s2">&quot;sample&quot;</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">toc</span><span class="o">.</span><span class="n">data</span>
+</pre></div>
+</td></tr></table><p>
+Output:
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="source"><pre><span class="gp">cheery@ruttunen:~/Documents/texopic$</span> python scratch.py 
+<span class="go">(&#39;1&#39;, &#39;1&#39;)</span>
+<span class="go">(&#39;1.1&#39;, &#39;1.1&#39;)</span>
+<span class="go">(&#39;2&#39;, &#39;sample&#39;)</span>
+<span class="go">[(&#39;1&#39;, &#39;1&#39;, &#39;hello&#39;), (&#39;1.1&#39;, &#39;1.1&#39;, &#39;test&#39;), (&#39;2&#39;, &#39;sample&#39;, &#39;world&#39;)]</span>
+<span class="gp">cheery@ruttunen:~/Documents/texopic$</span>
+</pre></div>
+</td></tr></table><h2
+  id="6">6. default_html_env <a href="#6" class="ref">$</a>
+</h2><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="source"><pre><span class="kn">from</span> <span class="nn">texopic.default_html_env</span> <span class="kn">import</span> <span class="n">env</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">Env</span><span class="p">()</span>
+<span class="c1"># add your customizations here.</span>
+</pre></div>
+</td></tr></table><p>
+The default_html_env uses the earlier html module to create HTML
+document fragments. It implements several useful macros listed below:
+</p><pre>
+#title
+#section
+#section{link}
+#subsection
+#subsection{link}
+#bold{group}
+#comment
+#begin{comment}
+#begin{itemize}
+#begin{enumerate}
+#item
+#image{url}
+#image{url}{alt}
+#href{url}
+#href{url}{desc}
+</pre><h2 id="7">7. Larger example <a href="#7" class="ref">$</a>
+</h2><p>
+You need to install <a href="http://pygments.org/">pygments</a> to get
+this example run.
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101</pre></div></td><td class="code"><div class="source"><pre><span class="kn">from</span> <span class="nn">texopic.default_html_env</span> <span class="kn">import</span> <span class="n">env</span>
+<span class="kn">from</span> <span class="nn">texopic.generic</span> <span class="kn">import</span> <span class="n">Env</span><span class="p">,</span> <span class="n">process</span><span class="p">,</span> <span class="n">verbatim</span>
+<span class="kn">from</span> <span class="nn">texopic</span> <span class="kn">import</span> <span class="n">html</span>
+<span class="kn">from</span> <span class="nn">texopic.toc</span> <span class="kn">import</span> <span class="n">Toc</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">texopic</span>
+
+<span class="k">class</span> <span class="nc">Document</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">toc</span> <span class="o">=</span> <span class="n">Toc</span><span class="p">()</span>
+
+<span class="n">template</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;!DOCTYPE html&gt;</span>
+<span class="s2">&lt;html&gt;</span>
+<span class="s2">&lt;head&gt;</span>
+<span class="s2">&lt;meta charset=&quot;utf-8&quot;&gt;</span>
+<span class="s2">&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;/&gt;</span>
+<span class="s2">{0}&lt;/head&gt;</span>
+<span class="s2">&lt;body&gt;</span>
+<span class="s2">{1}&lt;/body&gt;</span>
+<span class="s2">&lt;/html&gt;&quot;&quot;&quot;</span>
+
+<span class="n">style</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">body { max-width: 75ex }</span>
+<span class="s2">body &gt; pre { border: 1px solid #cfcfcf; padding: 1em 4ex }</span>
+<span class="s2">h2       &gt; .ref { visibility: hidden; text-decoration: underline; }</span>
+<span class="s2">h2:hover &gt; .ref { visibility: visible !important }</span>
+<span class="s2">h3       &gt; .ref { visibility: hidden; text-decoration: underline; }</span>
+<span class="s2">h3:hover &gt; .ref { visibility: visible !important }</span>
+
+<span class="s2">.sourcetable pre { margin: 0; }</span>
+<span class="s2">.sourcetable .linenos { padding-left: 1ex; padding-right: 1ex;</span>
+<span class="s2">    border-right: 1px solid black; }</span>
+
+
+<span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">texopic</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="n">Document</span><span class="p">()</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Block</span><span class="p">([])</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Block</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">vcall</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">document</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">document</span><span class="o">.</span><span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">head</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">document</span><span class="o">.</span><span class="n">title</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">document</span><span class="o">.</span><span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">head</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s1">&#39;meta&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span><span class="s1">&#39;description&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;content&#39;</span><span class="p">:</span><span class="n">document</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="p">},</span> <span class="n">slash</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+    <span class="n">head</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">Raw</span><span class="p">(</span><span class="n">style</span><span class="p">)]))</span>
+    <span class="n">head</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s1">&#39;link&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;rel&quot;</span><span class="p">:</span> <span class="s2">&quot;stylesheet&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text/css&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="s2">&quot;pygments-style.css&quot;</span><span class="p">),</span>
+    <span class="p">}))</span>
+    <span class="k">print</span> <span class="n">template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">stringify</span><span class="p">(</span><span class="n">head</span><span class="p">),</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">stringify</span><span class="p">(</span><span class="n">body</span><span class="p">))</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">Env</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+<span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;#include&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_include</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">verbatim</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="c1"># TODO: make source file relative.</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">texopic</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">process</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">group</span><span class="p">)</span>
+
+<span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;#description&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_description</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="nd">@context.next_group</span>
+    <span class="k">def</span> <span class="nf">_build_description_</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">verbatim</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">pygments</span> <span class="kn">import</span> <span class="n">highlight</span>
+<span class="kn">from</span> <span class="nn">pygments.lexers</span> <span class="kn">import</span> <span class="n">get_lexer_by_name</span>
+<span class="kn">from</span> <span class="nn">pygments.formatters</span> <span class="kn">import</span> <span class="n">HtmlFormatter</span>
+<span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;#sample&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_sample</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="nd">@context.next_group</span>
+    <span class="k">def</span> <span class="nf">_build_sample_</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">verbatim</span><span class="p">(</span><span class="n">group</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;python&quot;</span>
+        <span class="n">lexer</span> <span class="o">=</span> <span class="n">get_lexer_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">stripall</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">HtmlFormatter</span><span class="p">(</span><span class="n">linenos</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cssclass</span><span class="o">=</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Raw</span><span class="p">(</span><span class="n">highlight</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">lexer</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)))</span>
+    <span class="n">_build_sample_</span><span class="o">.</span><span class="n">capture_pre</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="c1"># heheehe.</span>
+<span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;#include_code&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_include_python_code</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">lexer_name</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">verbatim</span><span class="p">(</span><span class="n">lexer_name</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;python&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">verbatim</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="c1"># TODO: make source file relative?</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">lexer</span> <span class="o">=</span> <span class="n">get_lexer_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">stripall</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">HtmlFormatter</span><span class="p">(</span><span class="n">linenos</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cssclass</span><span class="o">=</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Raw</span><span class="p">(</span><span class="n">highlight</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">lexer</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)))</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</td></tr></table><h2
+  id="customizing">
+8. Macro customization <a href="#customizing" class="ref">$</a>
+</h2><p>
+You likely have good clue about how to extend Texopic with your own
+macros so far. To make it clear here are few complete samples about
+macros in Texopic.
+</p><h3 id="8.1">8.1. Ordinary macro <a href="#8.1" class="ref">$</a>
+</h3><p>
+Ordinary macro is just replacing itself with some content and starts a
+horizontal mode. This happens if you return something from the macro.
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="source"><pre><span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;#italic&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_italic</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="n">group</span><span class="p">)</span>
+</pre></div>
+</td></tr></table><p>
+The above code would parse #italic{group} macro.
+</p><h3 id="8.2">8.2. Segment macro <a href="#8.2" class="ref">$</a>
+</h3><p>
+Segments are paragraph-level constructs meant for customizing behavior
+of horizontal lists. The simplest construct such as this just writes
+out a differently formatted horizontal list.
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="source"><pre><span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;#claim&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_claim</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="nd">@context.next_group</span>
+    <span class="k">def</span> <span class="nf">_build_claim_</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span>
+            <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span><span class="s2">&quot;claim&quot;</span><span class="p">}))</span>
+</pre></div>
+</td></tr></table><p>
+Using such macros as this #claim always starts a new horizontal mode
+and creates a horizontal list.
+</p><h3 id="8.3">8.3. Stack macros <a href="#8.3" class="ref">$</a>
+</h3><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26</pre></div></td><td class="code"><div class="source"><pre><span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;:enumerate&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_begin_itemize</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="n">Itemize</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_build_</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">cake</span><span class="p">):</span>
+        <span class="n">block</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">cake</span><span class="p">)</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s1">&#39;ol&#39;</span><span class="p">,</span> <span class="n">block</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;build&quot;</span><span class="p">:</span> <span class="n">_build_</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="n">block</span><span class="p">}</span>
+
+<span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;#item&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_item</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">block</span><span class="p">,</span> <span class="n">Itemize</span><span class="p">):</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">block</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">get_cake</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">Suspend</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Itemize</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cake</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cake</span><span class="o">.</span><span class="n">is_empty</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">pass</span> <span class="c1"># the first #item</span>
+        <span class="k">elif</span> <span class="n">cake</span><span class="o">.</span><span class="n">is_group</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s1">&#39;li&#39;</span><span class="p">,</span> <span class="n">cake</span><span class="o">.</span><span class="n">as_group</span><span class="p">()))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s1">&#39;li&#39;</span><span class="p">,</span> <span class="n">cake</span><span class="o">.</span><span class="n">as_list</span><span class="p">()))</span>
+</pre></div>
+</td></tr></table><p>
+These macros parse input:
+</p><pre>#begin{enumerate}
+#item X
+#item Y
+#item Z
+#end{enumerate}
+</pre><p>And produce:</p><ol><li>X</li><li>Y</li><li>Z</li></ol><p>
+This is what is referred to with the term &#x27;cake stack&#x27;. The
+block macros push a vertical mode and allow to create nested vertical
+lists.
+</p><h3 id="8.4">
+8.4. Capture preformat block <a href="#8.4" class="ref">$</a>
+</h3><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="source"><pre><span class="nd">@env.define</span><span class="p">(</span><span class="s2">&quot;#sample&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">env_sample</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="nd">@context.next_group</span>
+    <span class="k">def</span> <span class="nf">_build_sample_</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="n">lexer_name</span> <span class="o">=</span> <span class="n">verbatim</span><span class="p">(</span><span class="n">group</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">pass</span> <span class="c1"># do some formatting for code here.</span>
+    <span class="n">_build_sample_</span><span class="o">.</span><span class="n">capture_pre</span> <span class="o">=</span> <span class="bp">True</span>
+</pre></div>
+</td></tr></table><p>
+This is parsing the #sample lexer_name ## and is meant for controlling
+how preformatted blocks are interpreted.
+</p><h2 id="9">
+9. Larger website construction with makefiles <a href="#9"
+  class="ref">$</a>
+</h2><p>
+Clean makefiles aren&#x27;t difficult to write. Get a guide if you
+don&#x27;t know how.
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="source"><pre><span class="nf">all</span><span class="o">:</span> <span class="n">index</span>.<span class="n">html</span> <span class="n">guide</span>.<span class="n">html</span>
+
+<span class="nf">guide.html</span><span class="o">:</span> <span class="n">guide</span>.<span class="n">text</span> <span class="n">LICENSE</span>.<span class="n">md</span> <span class="n">texopic</span>2<span class="n">html</span>.<span class="n">py</span> <span class="n">Makefile</span>
+	python texopic2html.py $&lt; &gt; <span class="nv">$@</span>
+
+<span class="nf">%.html</span><span class="o">:</span> %.<span class="n">text</span>
+	python texopic2html.py $&lt; &gt; <span class="nv">$@</span>
+</pre></div>
+</td></tr></table><p>
+Avoid cyclic dependencies and you&#x27;re all right. Practically this
+means that don&#x27;t have make rules that depend on the make rules
+coming before it.
+</p><h2 id="10">10. Contribution <a href="#10" class="ref">$</a>
+</h2><p>
+As an useful tip, the following command installs this package with a
+symlink so that changes to the sources will be immediately available
+to the users of the package.
+</p><table class="sourcetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="source"><pre><span class="gp">$</span> pip install -e .
+</pre></div>
+</td></tr></table><p>
+<a
+  href="http://python-packaging.readthedocs.io/en/latest/minimal.html">
+Python&#x27;s module packaging
+</a> is an useful link to anyone who wants to make his own packages
+for Python.
+</p><h3 id="10.1">
+10.1. Optimizations require benchmarks <a href="#10.1" class="ref">$
+</a>
+</h3><p>
+There is a common practice that enthusiastic people come to optimize
+other peoples code because they think certain things are right or
+correct to do or more efficient.
+</p><p>
+Outcome of unbenchmarked optimizations is unclear code and no
+benefits. Therefore you should attach a benchmark that lets the others
+verify your optimization works along your commits.
+</p><h3 id="10.2">
+10.2. Automatic tests demand explanations <a href="#10.2" class="ref">
+$
+</a>
+</h3><p>
+Programming profession doesn&#x27;t lack people ready to work for just
+sake of labour.
+</p><p>
+If you write an automated test for something or employ automated test
+framework on this code, you are expected to explain what you are doing
+and why.
+</p><h2 id="11">11. License <a href="#11" class="ref">$</a></h2><p>
+MIT License
+</p><p>Copyright (c) 2016 Henri Tuhola</p><p>
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+&quot;Software&quot;), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and&#x2F;or sell copies of the
+Software, and to permit persons to whom the Software is furnished to
+do so, subject to the following conditions:
+</p><p>
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+</p><p>
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+</p>
+</body>
+</html>

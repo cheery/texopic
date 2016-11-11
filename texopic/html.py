@@ -63,13 +63,14 @@ class URL(object):
         return self.href
 
 class Node(object):
-    def __init__(self, tag, data=None, attrs=None, extra=(), space_sensitive=None, raw=False):
+    def __init__(self, tag, data=None, attrs=None, extra=(),
+    space_sensitive=None, slash=True):
         self.tag = tag
         self.data = data
         self.attrs = {} if attrs is None else attrs
         self.extra = extra
         self.space_sensitive = (self.tag == 'pre') if space_sensitive else space_sensitive
-        self.raw = raw
+        self.slash = slash
 
     def stringify(self, scan):
         scan('<').left().left()
@@ -83,16 +84,13 @@ class Node(object):
             scan(item)
         scan.right()
         if self.data is None:
-            scan('/>').blank('').right()
+            scan('/>' if self.slash else '>').blank('').right()
         else:
             scan('>').left()
             if not self.space_sensitive:
                 scan.blank('')
-            if self.raw:
-                scan(self.data)
-            else:
-                for x in self.data:
-                    stringify_(scan, x)
+            for x in self.data:
+                stringify_(scan, x)
             if not self.space_sensitive:
                 scan.blank('')
             scan.right()('</')
@@ -112,6 +110,16 @@ class Node(object):
 
     def insert(self, index, node):
         self.data.insert(index, node)
+
+class Raw(object):
+    def __init__(self, string):
+        self.string = string
+
+    def stringify(self, scan):
+        scan(self.string)
+
+    def verbatim(self):
+        return self.string
 
 # This attr_escape works as long as attributes are correctly quoted.
 def attr_escape(attr):

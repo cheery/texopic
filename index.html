@@ -2,14 +2,23 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Texopic typesetting language</title><style>
 body { max-width: 75ex }
-pre { border: 1px solid #cfcfcf; padding: 1em 4ex }
+body > pre { border: 1px solid #cfcfcf; padding: 1em 4ex }
 h2       > .ref { visibility: hidden; text-decoration: underline; }
 h2:hover > .ref { visibility: visible !important }
 h3       > .ref { visibility: hidden; text-decoration: underline; }
 h3:hover > .ref { visibility: visible !important }
-</style>
+
+.sourcetable pre { margin: 0; }
+.sourcetable .linenos { padding-left: 1ex; padding-right: 1ex;
+    border-right: 1px solid black; }
+</style><link
+  href="pygments-style.css"
+  type="text/css"
+  rel="stylesheet"/>
+
 </head>
 <body>
 <h1>Texopic typesetting language</h1><p>
@@ -61,7 +70,8 @@ If the tool doesn&#x27;t behave according to this document, the tool
 contains a bug.
 </p><h2 id="tools">2. Tools <a href="#tools" class="ref">$</a></h2><p>
 <a href="https://github.com/cheery/texopic">Utility library for python
-</a> <a href="https://github.com/cheery/texopic/archive/master.zip">
+</a> <a href="guide.html">(Guide)</a> <a
+  href="https://github.com/cheery/texopic/archive/master.zip">
 (Download)
 </a>
 </p><h3 id="2.1">
@@ -70,9 +80,6 @@ contains a bug.
 The library contains a module and scripts to generate html from
 Texopic format. That generator has been written in such way that lets
 you build your own document processor from the pieces.
-</p><p>
-The html generator doesn&#x27;t escape HTML properly. That needs to be
-fixed later on.
 </p><p>
 The repository for the utility library contains also the most
 up-to-date version of this document.
@@ -244,9 +251,9 @@ high standards. Later on, it became the <a
 texopic2html.py
 </a>
 </p><p>
-This file has been generated from <a href="sample.text">sample.text
-</a> with the following linux command:
-</p><pre>python texopic2html.py sample.text &gt; index.html</pre><h2
+This file has been generated from <a href="index.text">index.text</a>
+with the following linux command:
+</p><pre>python texopic2html.py index.text &gt; index.html</pre><h2
   id="license">12. License <a href="#license" class="ref">$</a>
 </h2><p>MIT License</p><p>Copyright (c) 2016 Henri Tuhola</p><p>
 Permission is hereby granted, free of charge, to any person obtaining

@@ -216,6 +216,7 @@ class Context(object):
             if self.mode.capture_pre:
                 mode, self.mode = self.mode, self.mode.parent
                 mode.build(self, mode.data, string)
+                return
             else:
                 self.goto_vertical()
         if self.mode.is_restricted:
@@ -287,5 +288,5 @@ def verbatim(group):
         elif isinstance(node, (str, unicode)):
             data.append(node)
         else:
-            assert False, repr(node)
+            data.append(node.verbatim())
     return u''.join(data)
