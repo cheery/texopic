@@ -36,7 +36,7 @@ def main():
 
     if document.title is not None:
         head.append(html.Node('title', [document.title]))
-    head.append(html.Node('style', [style]))
+    head.append(html.Node('style', style, raw=True))
     print template.format(
         html.stringify(head),
         html.stringify(body))
