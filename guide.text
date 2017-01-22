@@ -420,7 +420,7 @@ wants to make his own packages for Python.
 #subsection Optimizations require benchmarks
 
 There is a common practice that enthusiastic people come to
-optimize other peoples code because they think certain
+optimize other people's code because they think certain
 things are right or correct to do or more efficient.
 
 Outcome of unbenchmarked optimizations is unclear code and

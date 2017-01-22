@@ -83,7 +83,7 @@ most up-to-date version of this document.
 #section Character escapes
 
 Texopic processors are expected to accept UTF-8 text. But
-they can also recognize two forms of character escapes:
+they can also recognize two forms of character escape macros:
 #;XX and #;U+XXXX. You can use both of these formats to
 represent unicode characters that mess up in the editor.
 
