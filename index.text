@@ -111,9 +111,9 @@ Here are few short examples:
 Preformatted text block cannot appear inside a macro
 argument and it terminates any macro.
 
-#subsection Paragraph breaks
+#subsection Paragraph/Segment breaks
 
-Blank line only consisting of spaces forms a paragraph
+Blank line only consisting of spaces forms a paragraph, or a segment
 break. Similarly to the preformatted text block it cannot
 appear inside macros as arguments and it also terminates all
 macros.
@@ -151,7 +151,17 @@ macro. For example:
     #title Title text
 
 If a segment is not tagged then it is a paragraph. A tagged
-segment may capture a preformatted block.
+segment may capture a preformatted block, like this:
+
+##
+    #macro segment text ##
+        preformatted block
+
+Segments cannot contain paragraph breaks. Any paragraph
+break also breaks a segment.
+
+Whether macro can tag a segment or capture a preformatted
+block depends on the environment.
 
 #subsection Groups
 
@@ -176,6 +186,9 @@ The end marker may be either implicit (#end) or explicit
 (#end{enumerate}). The explicit form is favored if the group
 spans more than 10 lines.
 
+Whether a macro behaves as a separator depends on the
+environment.
+
 #subsection Environments
 
 The above descriptions of a segment and a group do not
@@ -191,12 +204,29 @@ should follow. Here's an example of one written in json:
             "title/0":   {"capture": false},
             "section/0": {"capture": false},
             "section/1": {"capture": false}
+            "code/0":    {"capture": true}
         },
         "groups": {
             "itemize/0":   {"separators": ["item/0"]},
             "enumerate/0": {"separators": ["item/0"]}
         }
     }
+
+The purpose of the environment description is to help the
+Texopic parser determine how a macro is interpreted on
+top level.
+
+The slash '/' and number following in the text
+describes how many argument groups the macro must have in
+order to match. For example. The 'section/1' refers to a
+macro of form #;section{argument}
+
+To match from the group table, the first argument of the
+#;begin macro is treated as verbatim string. Then the first
+argument and the remaining arguments are used to match into
+the table. For example. The 'itemize/0' matches with
+#;begin{itemize}, If it matches, the matching activates the
+separators given to the group.
 
 The description may eventually also describe how the
 elements are layouted.
@@ -242,6 +272,22 @@ they can also recognize two forms of character escape macros:
 #;XX and #;U+XXXX. You can use both of these formats to
 represent unicode characters that mess up in the editor.
 
+The 'X' letters in the above formats are hexadecimal
+characters. The hexadecimal should refer to a valid unicode
+character.
+
+##
+    #30 alias for zero '0'
+    #3D alias for equal sign '='
+    #U+20AC alias for euro sign '€'.
+
+Read/write from texopic file to another texopic file must
+retain the escape characters as macros. Though, when
+converting out of texopic language it is up to the author
+convert the escapes to their respective notation in the
+target language. It is preferred to keep escaped characters
+as escaped form if there is no reason to change.
+
 #subsection URL handling
 
 URLs in Texopic should be prefixed with #;url macro word.
@@ -274,6 +320,22 @@ This is a quick summary of what is recognized by the
     #begin{comment}
     #end{comment}
 
+#begin{enumerate}
+#item 'title/0' starts a title segment.
+#item 'url/1' creates a hyperlink, an 'url'.
+#item 'href/2' creates a hyperlink over a descriptive text.
+#item 'image/1' starts an image segment.
+#item 'section/0' starts a new section segment.
+#item 'section/1' starts a new section segment with a link.
+#item 'subsection' are similar to 'section', but treat subsections.
+#item 'itemize/0' and 'enumerate/0' groups form lists.
+Either item lists or enumerative lists. They use 'item/0' as
+a separator.
+#item 'comment/0' is either a segment or a group. It is
+meant to specify segment or text that is left out from
+the documents that will be generated from the text.
+#end{enumerate}
+
 The macros try to follow conventions present in LaTeX.
 
 Additionally, on HTML output you have a #css -macro, you can
@@ -282,6 +344,29 @@ use it like this:
 ##
     #css ##
         body { padding: 0; margin: 0; }
+
+#subsection Error handling
+
+The Texopic parser must not refuse parsing incorrect syntax. 
+Whenever a parser encounters a syntax error, it is required
+to produce a macro 'syntax_error/1' on that point. For
+example, if we miss a brace like this:
+
+##
+    #bold{Bold failure
+
+    Nothing simple.
+
+If this passes through a parser, the parser should produce:
+
+##
+    #bold{Bold failure;#syntax_error{brace missing}}
+
+    Nothing simple.
+
+Note that the parser output must be always correct.
+Therefore the missing brace has been added to the point
+where it was detected that it was missing.
 
 
 
@@ -330,6 +415,13 @@ file.
 Can be extended to support additional structure. There is a
 standard method to build a generator which makes it
 straightforward to implement new generators or extensions.
+
+Generator is a program that converts from Texopic file to an
+another format. There are matching and pretty printing
+utilities inside Texopic format to carry through this task.
+
+How to build a generator will be documented in each
+implementation of Texopic.
 
 
 
