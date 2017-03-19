@@ -8,8 +8,7 @@ sync:
 	git push origin gh-pages
 	git checkout master
 
-guide.html: guide.text LICENSE.md texopic2html.py Makefile
-	python texopic2html.py $< > $@
+guide.html: guide.text LICENSE.md texopic2html.py
 
 %.html: %.text
 	python texopic2html.py $< > $@

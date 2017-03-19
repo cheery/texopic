@@ -709,19 +709,17 @@ don&#x27;t know how.
 11
 12
 13
-14
-15</pre></div></td><td class="code"><div class="source"><pre><span class="nf">all</span><span class="o">:</span> <span class="n">index</span>.<span class="n">html</span> <span class="n">guide</span>.<span class="n">html</span>
+14</pre></div></td><td class="code"><div class="source"><pre><span class="nf">all</span><span class="o">:</span> <span class="n">index</span>.<span class="n">html</span> <span class="n">guide</span>.<span class="n">html</span>
 
 <span class="c"># This is for updating the page. You shouldn&#39;t have to do it.</span>
 <span class="c"># http://lea.verou.me/2011/10/easily-keep-gh-pages-in-sync-with-master/</span>
-<span class="nf">sync</span><span class="o">:</span> <span class="n">all</span>
+<span class="nf">sync</span><span class="o">:</span>
 	git checkout gh-pages
 	git rebase master
 	git push origin gh-pages
 	git checkout master
 
-<span class="nf">guide.html</span><span class="o">:</span> <span class="n">guide</span>.<span class="n">text</span> <span class="n">LICENSE</span>.<span class="n">md</span> <span class="n">texopic</span>2<span class="n">html</span>.<span class="n">py</span> <span class="n">Makefile</span>
-	python texopic2html.py $&lt; &gt; <span class="nv">$@</span>
+<span class="nf">guide.html</span><span class="o">:</span> <span class="n">guide</span>.<span class="n">text</span> <span class="n">LICENSE</span>.<span class="n">md</span> <span class="n">texopic</span>2<span class="n">html</span>.<span class="n">py</span>
 
 <span class="nf">%.html</span><span class="o">:</span> %.<span class="n">text</span>
 	python texopic2html.py $&lt; &gt; <span class="nv">$@</span>
