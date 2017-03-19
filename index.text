@@ -262,6 +262,13 @@ start of an ordinary segment. The '!' tells that the segment
 captures a preformatted block. The '.' tells that the macro
 is a separator.
 
+I also provide an explicit paragraph break ':/0'. It starts a new
+segment and should be treated similarly to a paragraph. Example:
+
+##
+    #:title Hello
+    #: New paragraph.
+
 I expect that the use of the Texopic format will be always
 slightly use-specific.
 
@@ -329,7 +336,7 @@ This is a quick summary of what is recognized by the
 #item 'section/1' starts a new section segment with a link.
 #item 'subsection' are similar to 'section', but treat subsections.
 #item 'itemize/0' and 'enumerate/0' groups form lists.
-Either item lists or enumerative lists. They use 'item/0' as
+Either itemized lists or enumerative lists. They use 'item/0' as
 a separator.
 #item 'comment/0' is either a segment or a group. It is
 meant to specify segment or text that is left out from

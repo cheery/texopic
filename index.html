@@ -229,6 +229,11 @@ name provide explicit cue to how the macro should be treated. The
 tells that the segment captures a preformatted block. The
 &#x27;.&#x27; tells that the macro is a separator.
 </p><p>
+I also provide an explicit paragraph break &#x27;:&#x2F;0&#x27;. It
+starts a new segment and should be treated similarly to a paragraph.
+Example:
+</p><pre>#:title Hello
+#: New paragraph.</pre><p>
 I expect that the use of the Texopic format will be always slightly
 use-specific.
 </p><h3 id="2.10">
@@ -294,7 +299,7 @@ This is a quick summary of what is recognized by the <a
 subsections.
 </li><li>
 &#x27;itemize&#x2F;0&#x27; and &#x27;enumerate&#x2F;0&#x27; groups
-form lists. Either item lists or enumerative lists. They use
+form lists. Either itemized lists or enumerative lists. They use
 &#x27;item&#x2F;0&#x27; as a separator.
 </li><li>
 &#x27;comment&#x2F;0&#x27; is either a segment or a group. It is meant
