@@ -24,159 +24,207 @@ h3:hover > .ref { visibility: visible !important }
 <h1>Texopic typesetting language</h1><p>
 Texopic is a typesetting language for civilized, and less civilized
 ages. It is easy to learn and easy to use.
-</p><pre>
-#title Your story here
+</p><p>Here is a sample of the Texopic markup:</p><pre>
+#title Write your title here
 
-Opening paragraph.
+The first paragraph.
 
-#href {https:&#x2F;&#x2F;example.org&#x2F;}
-{Example link}
-</pre><p>
-The core principle in Texopic is to stay on the back when the author
-concentrates on writing her content.
-</p><p>
-Texopic uses only one meta-character (#) to form macros. This makes it
-likely to avoid triggering a document processor when writing your
-plaintext.
-</p><p>
-To make it even harder to trigger a macro by accident, the macro
-character and word must be separated from the plaintext by either
-semicolons or space. The surrounding semicolon characters around a
-macro word are consumed.
-</p><pre>Hello#world</pre><p>
-Would print out as &#x27;Hello#world&#x27;, whereas.
-</p><pre>Hello;#world</pre><p>
-Would trigger a macro #world right after the &#x27;Hello&#x27;. If you
-actually wanted to type &#x27;Hello #world&#x27; instead, you could
-add semicolon after the meta-character to prevent it from forming a
-macro.
-</p><pre>Hello #;world</pre><p>
-It should be extremely unlikely occurrence that a Texopic processor
-recognizes a macro from something you write or paste into your
-document.
-</p><p>
-Every Texopic processor recognize the same macros and the same
-structure. Users can define new macro words to extend what they can do
-with the language.
-</p><p>
-Texopic processor can be extended by writing new, custom processors
-with a scripting language such as <a href="https://python.org/">Python
-</a>.
-</p><h2 id="1">1. Specification <a href="#1" class="ref">$</a></h2><p>
-Overall, this document here should describe the Texopic format in
-whole.
-</p><p>
-If the tool doesn&#x27;t behave according to this document, the tool
-contains a bug.
-</p><h2 id="tools">2. Tools <a href="#tools" class="ref">$</a></h2><p>
+#href{https:&#x2F;&#x2F;example.org}{An example link}
+
+#section Fruit list
+
+#begin{enumerate}
+#item Orange
+#item Banana
+#item Watermelon
+#end{enumerate}
+
+
+
+</pre><h2 id="tools">1. Tools <a href="#tools" class="ref">$</a>
+</h2><p>
 <a href="https://github.com/cheery/texopic">Utility library for python
 </a> <a href="guide.html">(Guide)</a> <a
   href="https://github.com/cheery/texopic/archive/master.zip">
 (Download)
 </a>
-</p><h3 id="2.1">
-2.1. Notes for utility library <a href="#2.1" class="ref">$</a>
-</h3><p>
-The library contains a module and scripts to generate html from
-Texopic format. That generator has been written in such way that lets
-you build your own document processor from the pieces.
 </p><p>
-The repository for the utility library contains also the most
-up-to-date version of this document.
-</p><h2 id="3">3. Character escapes <a href="#3" class="ref">$</a>
-</h2><p>
+<a href="//leverlanguage.com">Lever language</a> has a library utility
+for handling texopic files.
+</p><h2 id="2">2. Specification <a href="#2" class="ref">$</a></h2><p>
+Texopic is an UTF-8 encoded plain text markup and typesetting
+language.
+</p><h3 id="2.1">2.1. Macro syntax <a href="#2.1" class="ref">$</a>
+</h3><p>
+A macro starts with a hash character (#). It is immediately followed
+by the name and arguments closed into braces ({ and }).
+</p><pre>#name{arg1}{arg2}</pre><p>
+The name of a macro must not contain spaces or semicolon
+&#x27;;&#x27;, otherwise the macro can be spaced apart and even broken
+into newlines as long as there is not a blank line between the
+arguments.
+</p><pre>#name
+{arg1} {arg2}</pre><p>
+Macro requires that there is blank or one of the &#x27;{&#x27;,
+&#x27;}&#x27; or &#x27;;&#x27; before the hash character (#). The
+following sequences do not form macros:
+</p><pre>(#test {macro})
+hello#bold{some text}</pre><p>
+The semicolon &#x27;;&#x27; can be used to start or terminate a macro.
+In these cases the macro consumes the semicolon and it is not
+displayed in the output. Here are some examples of the use:
+</p><pre>hello-;#bold{in-middle-of}-word
+test;#3A;character
+#a{b}; {c}
+</pre><p>
+If you want a semicolon after a macro, then type two semicolons.
+</p><h3 id="2.2">2.2. Use of braces <a href="#2.2" class="ref">$</a>
+</h3><p>
+Braces &#x27;{&#x27; and &#x27;}&#x27; can be freely used as long as
+they are not inside macro arguments. In the macro arguments they are
+allowed but are also required to pair.
+</p><h3 id="2.3">
+2.3. Preformatted text blocks <a href="#2.3" class="ref">$</a>
+</h3><p>
+To not let Texopic format text, for example when writing short code
+snippets or embed something in JSON, you can use the ## -macro. When
+the ## appears on the end of a line it will consume the subsequent
+blank lines and the lines that are indented higher than the line where
+the ## appeared on. Here are few short examples:
+</p><pre>
+#code python ##
+    print(&quot;hello world&quot;)
+
+#meta ##
+    {&quot;language&quot;: &quot;en&quot;,
+     &quot;flavor&quot;: &quot;article&quot;,
+     
+     &quot;day&quot;: &quot;18.3.2017&quot;}
+</pre><p>
+Preformatted text block cannot appear inside a macro argument and it
+terminates any macro.
+</p><h3 id="2.4">
+2.4. Paragraph breaks <a href="#2.4" class="ref">$</a>
+</h3><p>
+Blank line only consisting of spaces forms a paragraph break.
+Similarly to the preformatted text block it cannot appear inside
+macros as arguments and it also terminates all macros.
+</p><p>
+The lack of preformatted text blocks and paragraphs breaks inside
+macros makes the language easier to interpret by removing several
+annoying, ugly and rare fringe cases. It also allows to terminate the
+missing brace syntax errors early on.
+</p><h3 id="2.5">
+2.5. Verbatim or canonical form <a href="#2.5" class="ref">$</a>
+</h3><p>
+Texopic forms are canonicalized upon parsing. The canonicalization
+does the following:
+</p><ul>
+<li>The newlines not forming paragraph breaks are rewritten as spaces.
+</li><li>Multiple consecutive spaces are collapsed into single space.
+</li>
+</ul><p>
+Such verbatim is retrieved as a string and it is used whenever a macro
+argument must be interpreted as a variable or link resource.
+</p><h3 id="2.6">2.6. Segments <a href="#2.6" class="ref">$</a>
+</h3><p>
+Top-down, the Texopic document consists of segments, groups and pre
+-blocks.
+</p><p>
+Segment is a line of text. The segment may be tagged with a macro. For
+example:
+</p><pre>#title Title text</pre><p>
+If a segment is not tagged then it is a paragraph. A tagged segment
+may capture a preformatted block.
+</p><h3 id="2.7">2.7. Groups <a href="#2.7" class="ref">$</a></h3><p>
+Group is a larger macro constructs, it has a marker for begin and end,
+and one or more separators between it. Example:
+</p><pre>
+#begin{enumerate}
+First item.
+#item
+Second item.
+#item
+Third item.
+#end
+</pre><p>
+The begin may contain one or more arguments and it will be reformatted
+into a pseudo-macro. For example the above #begin{enumerate} turns
+into #enumerate.
+</p><p>
+The end marker may be either implicit (#end) or explicit
+(#end{enumerate}). The explicit form is favored if the group spans
+more than 10 lines.
+</p><h3 id="2.8">2.8. Environments <a href="#2.8" class="ref">$</a>
+</h3><p>
+The above descriptions of a segment and a group do not describe which
+macros form segments or groups. For this purpose we have environment
+descriptions.
+</p><p>
+Environment description describes which rules our macros should
+follow. Here&#x27;s an example of one written in json:
+</p><pre>
+{
+    &quot;segments&quot;: {
+        &quot;title&#x2F;0&quot;:   {&quot;capture&quot;: false},
+        &quot;section&#x2F;0&quot;: {&quot;capture&quot;: false},
+        &quot;section&#x2F;1&quot;: {&quot;capture&quot;: false}
+    },
+    &quot;groups&quot;: {
+        &quot;itemize&#x2F;0&quot;:   {&quot;separators&quot;: [&quot;item&#x2F;0&quot;]},
+        &quot;enumerate&#x2F;0&quot;: {&quot;separators&quot;: [&quot;item&#x2F;0&quot;]}
+    }
+}
+</pre><p>
+The description may eventually also describe how the elements are
+layouted.
+</p><h3 id="2.9">2.9. Explicit form <a href="#2.9" class="ref">$</a>
+</h3><p>
+I foresee that someone may want to use explicit forms. I may even
+personally want to eliminate implicit interpretations later on from
+the language. Therefore I provide some forward-compatible measures
+now.
+</p><pre>
+#:title Write your title here
+
+The first paragraph.
+
+#href{https:&#x2F;&#x2F;example.org}{An example link}
+
+#:section Fruit list
+
+#begin{enumerate}
+#.item Orange
+#.item Banana
+#.item Watermelon
+#end{enumerate}
+
+#!code python ##
+    print(&quot;hello&quot;)
+</pre><p>
+The symbols &#x27;:&#x27;, &#x27;.&#x27;, &#x27;!&#x27; starting a
+name provide explicit cue to how the macro should be treated. The
+&#x27;:&#x27; tells a start of an ordinary segment. The &#x27;!&#x27;
+tells that the segment captures a preformatted block. The
+&#x27;.&#x27; tells that the macro is a separator.
+</p><p>
+I expect that the use of the Texopic format will be always slightly
+use-specific.
+</p><h3 id="2.10">
+2.10. Character escapes <a href="#2.10" class="ref">$</a>
+</h3><p>
 Texopic processors are expected to accept UTF-8 text. But they can
 also recognize two forms of character escape macros: #XX and #U+XXXX.
 You can use both of these formats to represent unicode characters that
 mess up in the editor.
-</p><h2 id="4">4. Macro block ## <a href="#4" class="ref">$</a>
-</h2><p>
-Sometimes it is desirable to not let Texopic format your text. For
-example when writing short code snippets, or something that should go
-through a specialized processor that doesn&#x27;t obey Texopic rules.
-</p><p>
-For this purpose there is a ## macro. When ## appears on the end of a
-line, it will consume the subsequent lines that are indented higher
-than the line where the ## macro appeared.
-</p><pre>#code python ##
-    print(&quot;hello world&quot;)</pre><p>
-This feature may make Texopic pain-in-the-ass to syntax color. But
-then it enables you to write a real, backwards compatible WYSIWYG text
-processor around this format.
-</p><p>
-The semicolon after a ## macro prevents it from having an effect at
-the end of a line.
-</p><h2 id="5">5. Blank lines <a href="#5" class="ref">$</a></h2><p>
-Blank lines in Texopic text are interpreted as implicit macros. This
-is interpreted as a start of a new paragraph.
-</p><p>
-Macros can be used to discard an empty paragraph and start a segment
-of text with special meaning. #title, #section; and #subsection all
-have precisely that behavior.
-</p><h2 id="6">6. Macro grouping <a href="#6" class="ref">$</a>
-</h2><p>The { and } characters are used to group in Texopic.</p><p>
-} and { characters can be used in the stream without worries as long
-as they pair properly inside the macro groups. They only have meaning
-when they come after a macro.
-</p><p>
-Whenever a macro is followed by one or more groups, those groups are
-fused into the macro as arguments.
-</p><p>
-Blank lines or characters between a macro and a group prevent the
-macro from collecting the group.
-</p><p>
-Here are several examples of groups that do not fuse with a macro:
-</p><pre>#href;{does not fuse}
-
-#url
-
-{does not fuse}</pre><p>
-These groups fuse with macros preceding them:
-</p><pre>
-#href{&#x2F;&#x2F;example.org}{example}
-
-#href {&#x2F;&#x2F;example.org} {example}
-
-#href
-{&#x2F;&#x2F;example.org}
-{example}
-</pre><p>
-Macros have to be explicit before macro grouping applies to them.
-Grouping is not done on the implicitly created macros at line breaks.
-</p><h2 id="7">7. Macro resolution <a href="#7" class="ref">$</a>
-</h2><p>
-To understand how Texopic document is processed it is accurate to
-think of it as a chain of functions.
-</p><p>
-The first function transforms plaintext input into sequence of
-characters and macro words. Lines consumed by ## token are annotated
-to it. The newlines followed by blanks, and macros followed by
-&#x27;;&#x27; are marked.
-</p><p>
-The second function forms segments from a sequence produced by the
-first function. The groups and macros are formed and no further
-parsing is necessary after that point.
-</p><p>
-At this point the control is up to the user. She can choose which kind
-of output she wants. She can completely customize how the macros are
-interpreted by adjusting the output processors.
-</p><h3 id="7.1">
-7.1. Default processor behavior <a href="#7.1" class="ref">$</a>
+</p><h3 id="2.11">2.11. URL handling <a href="#2.11" class="ref">$</a>
 </h3><p>
-There is a default behavior for how outputting processor should work.
-</p><ul>
-<li>It should maintain a buffer for the current text segment.</li><li>
-It should manage to create a new vertical list and a buffer for a
-group or for a list itemization.
-</li><li>
-Inside macro groups it should be allowed to ignore implicit macros and
-other such commands that cause the vertical list to grow.
-</li><li>
-It should trim whitespace out of the start and end of a paragraphs and
-refuse to produce empty paragraphs.
-</li><li>It should not output empty paragraphs.</li>
-</ul><h2 id="8">8. Recognized macros <a href="#8" class="ref">$</a>
-</h2><p>
+URLs in Texopic should be prefixed with #url macro word. The automatic
+recognition of URLs is impractical to solve in such way that it covers
+any and every valid URL you could pass into the text.
+</p><h3 id="2.12">
+2.12. Recognized macros <a href="#2.12" class="ref">$</a>
+</h3><p>
 This is a quick summary of what is recognized by the <a
   href="https://github.com/cheery/texopic">Texopic html processor</a>.
 </p><pre>
@@ -202,13 +250,81 @@ This is a quick summary of what is recognized by the <a
 Additionally, on HTML output you have a #css -macro, you can use it
 like this:
 </p><pre>#css ##
-    body { padding: 0; margin: 0; }</pre><h2 id="9">
-9. URL handling <a href="#9" class="ref">$</a>
-</h2><p>
-URLs in Texopic should be prefixed with #url macro word. The automatic
-recognition of URLs is impractical to solve in such way that it covers
-any and every valid URL you could pass into the text.
-</p><h2 id="10">10. History <a href="#10" class="ref">$</a></h2><p>
+    body { padding: 0; margin: 0; }
+
+
+</pre><h2
+  id="3">3. Attained design objectives <a href="#3" class="ref">$</a>
+</h2><h3 id="3.1">
+3.1. Supports writer&#x27;s workflow <a href="#3.1" class="ref">$</a>
+</h3><p>
+Stays on the back when the author concentrates on writing her
+document. The author only needs to worry about use of one
+meta-character (#) while working on the text.
+</p><h3 id="3.2">
+3.2. Can be generated <a href="#3.2" class="ref">$</a>
+</h3><p>
+Documents can be modified &amp; generated by computer. This comes
+useful if you have to maintain up-to-date programming language
+documentation or publish a report that is based on data collected by
+computers.
+</p><h3 id="3.3">
+3.3. Interoperable with other formats <a href="#3.3" class="ref">$</a>
+</h3><p>
+Can embed other plaintext files inside itself. Can reference to
+directory files or hyperlink to external resources.
+</p><h3 id="3.4">
+3.4. Supports direct rendering to the screen <a
+  href="#3.4"
+  class="ref">$</a>
+</h3><p>
+Has a clean structure when loaded to computer&#x27;s memory. Can be
+used directly to print on the screen. Conversion to other formats is
+not needed.
+</p><h3 id="3.5">
+3.5. Supports WYSIWYG software <a href="#3.5" class="ref">$</a>
+</h3><p>
+Supports plaintext editing but doesn&#x27;t enforce you to it. A
+WYSIWYG editor can be written over the markup.
+</p><h3 id="3.6">3.6. Tolerant <a href="#3.6" class="ref">$</a>
+</h3><p>
+Formatting errors are marked into the output and do not interrupt the
+parsing. Missing a brace has only a local effect that does not mess up
+the whole representation of a file.
+</p><h3 id="3.7">3.7. Extensible <a href="#3.7" class="ref">$</a>
+</h3><p>
+Can be extended to support additional structure. There is a standard
+method to build a generator which makes it straightforward to
+implement new generators or extensions.
+</p><h2 id="4">
+4. Comparison with similar languages <a href="#4" class="ref">$</a>
+</h2><h3 id="4.1">4.1. XML &amp; HTML <a href="#4.1" class="ref">$</a>
+</h3><p>
+XML &amp; HTML formats share the closest resemblence and have similar
+goals. They have more fringe cases and are harder to work with. These
+formats attempt to be general and are therefore flawed in all of the
+usecases they have. Texopic is not suitable for replacing XML in all
+of its usecases, but should work better for written documents.
+</p><h3 id="4.2">4.2. TeX <a href="#4.2" class="ref">$</a></h3><p>
+TeX formed inspiration for Texopic. The limitations are that TeX
+interpreter can get triggered from about any character and because of
+how it is constructed you cannot expect a text processing tool to read
+a TeX file and then write it back.
+</p><h3 id="4.3">4.3. Markdown <a href="#4.3" class="ref">$</a>
+</h3><p>
+Markdown is a bullettin-board format that has ended up to wide use
+everywhere. It has a focus on readability. Markdown can be extended
+but extensions easily become complex and interact unfavorably with
+other extensions. Markdown only translates well to HTML.
+</p><h3 id="4.4">
+4.4. reStructuredText <a href="#4.4" class="ref">$</a>
+</h3><p>
+reStructuredText is Python language&#x27;s documentation format. It
+has lot of similarities to Markdown format although it is slightly
+better thought out. Where XML &amp; HTML are too generic, the
+reStructuredText and Markdown are too specific. This limits what you
+do with them.
+</p><h2 id="5">5. History <a href="#5" class="ref">$</a></h2><p>
 Texopic started out during an <a
   href="//github.com/cheery/lever/blob/master/documentation_considerations.tex">
 assessment
@@ -238,7 +354,7 @@ hard to figure out what kind of notation they use. They appeared to be
 also difficult to customize.
 </p><p>
 With Texopic I can completely customize my documentation generation.
-</p><h2 id="11">11. Trivia <a href="#11" class="ref">$</a></h2><p>
+</p><h2 id="6">6. Trivia <a href="#6" class="ref">$</a></h2><p>
 While inspired by TeX, Texopic is neither TeX nor a superset of TeX.
 </p><p>
 Texopic name born as a wordplay from &quot;TeX by Topic&quot;. Author
@@ -254,8 +370,9 @@ texopic2html.py
 This file has been generated from <a href="index.text">index.text</a>
 with the following linux command:
 </p><pre>python texopic2html.py index.text &gt; index.html</pre><h2
-  id="license">12. License <a href="#license" class="ref">$</a>
-</h2><p>MIT License</p><p>Copyright (c) 2016 Henri Tuhola</p><p>
+  id="license">7. License <a href="#license" class="ref">$</a></h2><p>
+MIT License
+</p><p>Copyright (c) 2016 Henri Tuhola</p><p>
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
 &quot;Software&quot;), to deal in the Software without restriction,
