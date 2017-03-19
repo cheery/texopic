@@ -75,7 +75,7 @@ def precapture(stream):
             if len(line.strip()) > 0)
     except ValueError as v:
         pass
-    return "\n".join(line[leftpad:] for line in lines)
+    return "\n".join(line[leftpad:] for line in lines).rstrip("\n")
 
 # This makes the token chopper simpler to implement.
 class Stream(object):
